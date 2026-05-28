@@ -1,8 +1,13 @@
 # Referências internas (não versionadas)
 .refs/
 
-# Python venv
+# Python
 .venv/
+*venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
 
 # Build artifacts
 build/
