@@ -28,4 +28,8 @@ results/*.pdf
 
 # OS
 .DS_Store
-Thumbs.dbcaminho_ACO.txt
+Thumbs.db
+.claude/
+
+# Artefatos locais
+caminho_ACO.txt

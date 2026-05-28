@@ -50,12 +50,16 @@ Paralelização do Algoritmo de Otimização de Colônia de Formigas (ACO) com C
 ## Como compilar
 
 ```bash
-# TODO: Makefile será adicionado com as versões
-make sequential   # compila versão sequencial
-make cuda         # compila versão CUDA
-make openmp       # compila versão OpenMP
-make benchmark    # roda todas as versões e compara
+make sequential   # compila versão sequencial   -> build/aco_seq
+make cuda         # compila versão CUDA          -> build/aco_cuda
+make openmp       # compila versão OpenMP        -> build/aco_omp
+make all          # compila as 3 versões
+make benchmark    # compila e executa as versões disponíveis
+make clean        # remove build/
 ```
+
+> CUDA e OpenMP são épicos separados. Enquanto `src/cuda/` e `src/openmp/`
+> estiverem vazios (ou `nvcc` não existir), esses targets são pulados sem erro.
 
 ## Referências
 

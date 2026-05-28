@@ -25,7 +25,7 @@ CUDA_BIN = $(BUILD_DIR)/aco_cuda
 # Detecta se o nvcc esta disponivel (portabilidade entre maquinas).
 NVCC_AVAILABLE := $(shell command -v $(NVCC) 2>/dev/null)
 
-.PHONY: all sequential cuda openmp clean
+.PHONY: all sequential cuda openmp benchmark clean
 
 all: sequential cuda openmp
 
@@ -66,6 +66,20 @@ else
 	$(NVCC) $(NVCCFLAGS) -o $@ $(CUDA_SRC)
 	@echo "[cuda] OK -> $@"
 endif
+
+# ---- Benchmark --------------------------------------------------------------
+# Compila as 3 versoes e executa cada binario que tiver sido gerado.
+# Versoes sem fonte (CUDA/OpenMP ainda vazios) sao puladas sem erro.
+benchmark: all
+	@echo "==== Benchmark: executando versoes disponiveis ===="
+	@for bin in $(SEQ_BIN) $(OMP_BIN) $(CUDA_BIN); do \
+		if [ -x "$$bin" ]; then \
+			echo "---- $$bin ----"; \
+			./$$bin; \
+		else \
+			echo "[benchmark] $$bin nao compilado — pulando."; \
+		fi; \
+	done
 
 # ---- Limpeza ----------------------------------------------------------------
 clean:
