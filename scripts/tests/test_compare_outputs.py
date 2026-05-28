@@ -1,9 +1,5 @@
-import os
-import sys
 import numpy as np
 import pytest
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from compare_outputs import compare
 
 
@@ -53,5 +49,20 @@ def test_comma_delimiter(tmp_path):
     a, b = tmp_path / "a.csv", tmp_path / "b.csv"
     data = np.array([[1, 0, 1]])
     _write(a, data, delimiter=",")
+    _write(b, data, delimiter=",")
+    assert compare(str(a), str(b)) is True
+
+
+def test_missing_file_raises(tmp_path):
+    existing = tmp_path / "a.csv"
+    _write(existing, np.array([[1, 0]]))
+    with pytest.raises((FileNotFoundError, OSError)):
+        compare(str(existing), str(tmp_path / "nonexistent.csv"))
+
+
+def test_mixed_delimiters_pass(tmp_path):
+    a, b = tmp_path / "a.csv", tmp_path / "b.csv"
+    data = np.array([[1, 0, 1]])
+    _write(a, data, delimiter=";")
     _write(b, data, delimiter=",")
     assert compare(str(a), str(b)) is True

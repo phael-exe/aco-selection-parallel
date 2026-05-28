@@ -20,20 +20,25 @@ def compare(file_a, file_b, atol=1e-6):
 
     if not np.allclose(a, b, atol=atol, rtol=0):
         diff = np.argwhere(~np.isclose(a, b, atol=atol, rtol=0))
-        print(f"FAIL: {len(diff)} valores divergentes", file=sys.stderr)
+        print(f"FAIL: {len(diff)} differing values", file=sys.stderr)
         for idx in diff[:10]:
             key = tuple(idx)
             print(f"  {key}: {a[key]:.8f} vs {b[key]:.8f}", file=sys.stderr)
         return False
 
-    print(f"OK: outputs equivalentes ({a.shape})")
+    print(f"OK: outputs match ({a.shape})")
     return True
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print(f"Uso: {sys.argv[0]} <arquivo_a> <arquivo_b>", file=sys.stderr)
+        print(f"Usage: {sys.argv[0]} <file_a> <file_b>", file=sys.stderr)
         sys.exit(2)
 
-    ok = compare(sys.argv[1], sys.argv[2])
+    try:
+        ok = compare(sys.argv[1], sys.argv[2])
+    except (FileNotFoundError, OSError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(2)
+
     sys.exit(0 if ok else 1)
