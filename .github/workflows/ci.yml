@@ -23,6 +23,7 @@ jobs:
       - name: Build sequential
         run: make sequential
 
+      # Binaries must accept: <dataset_path> --seed <int> --output <output_path>
       - name: Run on haberman
         run: |
           mkdir -p results/ci
@@ -47,6 +48,7 @@ jobs:
       - name: Build OpenMP
         run: make openmp
 
+      # Binaries must accept: <dataset_path> --seed <int> --output <output_path>
       - name: Run on haberman
         run: |
           mkdir -p results/ci
@@ -80,6 +82,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
@@ -89,8 +92,15 @@ jobs:
       - name: Lint scripts/
         run: flake8 scripts/ --max-line-length=120 --select=E9,F
 
+      - name: Install test dependencies
+        run: pip install pytest numpy==2.0.2
+
+      - name: Run Python tests
+        run: pytest scripts/tests/ -v
+
   equivalence:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [build-sequential, build-openmp]
     steps:
       - uses: actions/checkout@v4
@@ -108,7 +118,7 @@ jobs:
           path: results/ci
 
       - name: Install numpy
-        run: pip install numpy
+        run: pip install numpy==2.0.2
 
       - name: Compare haberman outputs
         run: python3 scripts/compare_outputs.py results/ci/seq_haberman.csv results/ci/omp_haberman.csv
