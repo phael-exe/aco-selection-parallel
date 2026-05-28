@@ -1,5 +1,7 @@
 # aco-selection-parallel
 
+![CI](https://github.com/phael-exe/aco-selection-parallel/actions/workflows/ci.yml/badge.svg)
+
 Paralelização do Algoritmo de Otimização de Colônia de Formigas (ACO) com CUDA e OpenMP para seleção de instâncias em larga escala.
 
 **Disciplina:** Computação de Alto Desempenho — UFG 2026  

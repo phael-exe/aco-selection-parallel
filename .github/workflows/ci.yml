@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-sequential:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build sequential
+        run: make sequential
+
+      # Binaries must accept: <dataset_path> --seed <int> --output <output_path>
+      - name: Run on haberman
+        run: |
+          mkdir -p results/ci
+          ./build/sequential data/baseline/haberman.csv --seed 42 --output results/ci/seq_haberman.csv
+
+      - name: Run on heart_failure
+        run: |
+          ./build/sequential data/baseline/heart_failure.csv --seed 42 --output results/ci/seq_heart.csv
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: seq-outputs
+          path: results/ci/seq_*.csv
+
+  build-openmp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build OpenMP
+        run: make openmp
+
+      # Binaries must accept: <dataset_path> --seed <int> --output <output_path>
+      - name: Run on haberman
+        run: |
+          mkdir -p results/ci
+          ./build/openmp data/baseline/haberman.csv --seed 42 --output results/ci/omp_haberman.csv
+
+      - name: Run on heart_failure
+        run: |
+          ./build/openmp data/baseline/heart_failure.csv --seed 42 --output results/ci/omp_heart.csv
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: omp-outputs
+          path: results/ci/omp_*.csv
+
+  build-cuda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nvcc
+        uses: Jimver/cuda-toolkit@dc0ca7bb29c5a92f7a963d3d5c93f8d59765136a  # v0.2.14
+        with:
+          cuda: '12.4.0'
+          method: 'network'
+          sub-packages: '["nvcc"]'
+
+      - name: Build CUDA (compile-only)
+        run: make cuda CI=1
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install flake8
+        run: pip install flake8==7.1.1
+
+      - name: Lint scripts/
+        run: flake8 scripts/ --max-line-length=120 --select=E9,F
+
+      - name: Install test dependencies
+        run: pip install pytest numpy==2.0.2
+
+      - name: Run Python tests
+        run: pytest scripts/tests/ -v
+
+  equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [build-sequential, build-openmp]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download sequential outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: seq-outputs
+          path: results/ci
+
+      - name: Download OpenMP outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: omp-outputs
+          path: results/ci
+
+      - name: Install numpy
+        run: pip install numpy==2.0.2
+
+      - name: Compare haberman outputs
+        run: python3 scripts/compare_outputs.py results/ci/seq_haberman.csv results/ci/omp_haberman.csv
+
+      - name: Compare heart_failure outputs
+        run: python3 scripts/compare_outputs.py results/ci/seq_heart.csv results/ci/omp_heart.csv
