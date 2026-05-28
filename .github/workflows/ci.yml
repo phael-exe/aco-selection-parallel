@@ -6,9 +6,17 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-sequential:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +40,7 @@ jobs:
 
   build-openmp:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -55,11 +64,12 @@ jobs:
 
   build-cuda:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
       - name: Install nvcc
-        uses: Jimver/cuda-toolkit@v0.2.14
+        uses: Jimver/cuda-toolkit@dc0ca7bb29c5a92f7a963d3d5c93f8d59765136a  # v0.2.14
         with:
           cuda: '12.4.0'
           method: 'network'
@@ -74,7 +84,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install flake8
-        run: pip install flake8
+        run: pip install flake8==7.1.1
 
       - name: Lint scripts/
         run: flake8 scripts/ --max-line-length=120 --select=E9,F
