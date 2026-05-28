@@ -18,8 +18,8 @@ def compare(file_a, file_b, atol=1e-6):
         print(f"FAIL: shape mismatch {a.shape} vs {b.shape}", file=sys.stderr)
         return False
 
-    if not np.allclose(a, b, atol=atol):
-        diff = np.argwhere(~np.isclose(a, b, atol=atol))
+    if not np.allclose(a, b, atol=atol, rtol=0):
+        diff = np.argwhere(~np.isclose(a, b, atol=atol, rtol=0))
         print(f"FAIL: {len(diff)} valores divergentes", file=sys.stderr)
         for idx in diff[:10]:
             key = tuple(idx)
