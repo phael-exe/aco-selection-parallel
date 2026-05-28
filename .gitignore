@@ -1,1 +1,26 @@
+# Referências internas (não versionadas)
 .refs/
+
+# Python venv
+.venv/
+
+# Build artifacts
+build/
+*.o
+*.out
+*.exe
+
+# IDE
+.idea/
+.vscode/
+cmake-build-*/
+
+# Results (grandes demais para git, gerados localmente)
+results/*.csv
+results/*.png
+results/*.pdf
+!results/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
