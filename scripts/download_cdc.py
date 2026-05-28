@@ -47,7 +47,7 @@ def main():
     print(f"Tamanho:  {size_mb:.1f} MB")
 
     # Mostra primeiras linhas como verificação
-    print(f"\nPrimeiras 3 linhas:")
+    print("\nPrimeiras 3 linhas:")
     print(df.head(3).to_string(index=False))
 
 
