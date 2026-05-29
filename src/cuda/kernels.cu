@@ -101,3 +101,103 @@ __global__ void init_curand_kernel(curandState* states, unsigned long long seed,
     if (tid >= N) return;
     curand_init(seed, tid, 0, &states[tid]);
 }
+
+// T14 + T15 — Construção de solução + depósito de feromônio
+// 1 thread = 1 formiga. colony[ant*N+j]: 1=visitado, 0=rejeitado, -1=não visitado
+// pheromone: vetor 1D[N]. deposit: buffer acumulador para atomicAdd.
+// onthefly=1: calcula distância dentro do kernel (para N>10k)
+// onthefly=0: usa vis pré-computado
+__global__ void ant_construction_kernel(
+    const double* X,
+    const double* dist,
+    const double* vis,
+    const double* pheromone,
+    int*          colony,
+    double*       deposit,
+    curandState*  rng_states,
+    int N, int F, int onthefly)
+{
+    int ant = blockIdx.x * blockDim.x + threadIdx.x;
+    if (ant >= N) return;
+
+    curandState local_state = rng_states[ant];
+    int pos = ant;  // posição atual da formiga
+
+    bool has_unvisited = true;
+    while (has_unvisited) {
+        // Calcular smell total (denominador da probabilidade)
+        double smell = 0.0;
+        for (int j = 0; j < N; ++j) {
+            if (colony[(long long)ant * N + j] < 0) {
+                double eta;
+                if (onthefly) {
+                    double sum = 0.0;
+                    for (int k = 0; k < F; ++k) {
+                        double d = X[(long long)pos * F + k] - X[(long long)j * F + k];
+                        sum += d * d;
+                    }
+                    double dist_ij = sqrt(sum);
+                    eta = (dist_ij == 0.0) ? 0.0 : 1.0 / dist_ij;
+                } else {
+                    eta = vis[(long long)pos * N + j];
+                }
+                smell += pheromone[j] * eta;
+            }
+        }
+
+        has_unvisited = false;
+        for (int j = 0; j < N; ++j) {
+            if (colony[(long long)ant * N + j] < 0) {
+                has_unvisited = true;
+                double eta;
+                if (onthefly) {
+                    double sum = 0.0;
+                    for (int k = 0; k < F; ++k) {
+                        double d = X[(long long)pos * F + k] - X[(long long)j * F + k];
+                        sum += d * d;
+                    }
+                    double dist_ij = sqrt(sum);
+                    eta = (dist_ij == 0.0) ? 0.0 : 1.0 / dist_ij;
+                } else {
+                    eta = vis[(long long)pos * N + j];
+                }
+
+                double prob = (smell == 0.0) ? 0.0 : (pheromone[j] * eta) / smell;
+                // Fator aleatório: 0 ou 1 (equivalente ao baseline ajk = my_rand(0,1))
+                int ajk = (curand_uniform(&local_state) < 0.5f) ? 0 : 1;
+                double final_prob = prob * (double)ajk;
+
+                if (final_prob != 0.0) {
+                    colony[(long long)ant * N + j] = 1;
+                    pos = j;
+                    break;
+                } else {
+                    colony[(long long)ant * N + j] = 0;
+                }
+            }
+        }
+    }
+
+    // Calcular tour_length e depositar feromônio (Q=1 / tour_length)
+    double tour_len = 0.0;
+    for (int j = 0; j < N; ++j) {
+        if (colony[(long long)ant * N + j] == 1 && j != ant) {
+            if (!onthefly && dist != nullptr) {
+                // Usar distância pré-computada como proxy do comprimento do tour
+                double d = dist[(long long)ant * N + j];
+                tour_len += d;
+            } else {
+                tour_len += 1.0;  // proxy: conta instâncias visitadas
+            }
+        }
+    }
+
+    double ant_deposit = (tour_len == 0.0) ? 0.0 : 1.0 / tour_len;
+    for (int j = 0; j < N; ++j) {
+        if (colony[(long long)ant * N + j] == 1 && j != ant) {
+            atomicAddDouble(&deposit[j], ant_deposit);
+        }
+    }
+
+    rng_states[ant] = local_state;
+}
