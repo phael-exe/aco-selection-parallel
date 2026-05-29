@@ -63,7 +63,7 @@ else ifeq ($(NVCC_AVAILABLE),)
 	@echo "[cuda] nvcc nao encontrado — pulando."
 else
 	@mkdir -p $(BUILD_DIR)
-	$(NVCC) $(NVCCFLAGS) -o $@ $(CUDA_SRC)
+	$(NVCC) $(NVCCFLAGS) -o $@ $(CUDA_SRC) -lcurand
 	@echo "[cuda] OK -> $@"
 endif
 
