@@ -29,3 +29,7 @@ results/*.pdf
 # OS
 .DS_Store
 Thumbs.db
+.claude/
+
+# Artefatos locais
+caminho_ACO.txt
