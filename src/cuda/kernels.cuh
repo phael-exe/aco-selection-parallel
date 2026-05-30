@@ -26,16 +26,15 @@ __global__ void pairwise_distance_kernel(
 __global__ void visibility_kernel(
     const double* dist, double* vis, int N);
 
-// T14+T15: Construção de soluções (1 thread = 1 formiga) + depósito feromônio
+// T14+T15: Construção de soluções (1 thread = 1 par formiga×instância)
+// K*N threads: thread tid → ant=tid/N, inst=tid%N
+// Decisão independente: P(select inst) = pheromone[inst] ∈ [0,1]
 __global__ void ant_construction_kernel(
-    const double* X,
-    const double* dist,
-    const double* vis,
     const double* pheromone,
     int*          colony,
     double*       deposit,
     curandState*  rng_states,
-    int N, int F, int onthefly);
+    int N, int K);
 
 // T16: Evaporação de feromônio tau[i] *= (1 - rho)
 __global__ void pheromone_evaporation_kernel(

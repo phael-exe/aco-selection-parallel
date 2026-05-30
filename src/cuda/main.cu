@@ -5,12 +5,82 @@
 #include <string>
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
+#include <chrono>
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 #include "memory.cuh"
 #include "kernels.cuh"
 
 using namespace std;
+
+struct EvalMetrics { double f1, acc, precision, recall, reduction; int selected; };
+
+// Avalia solução com 1-NN em amostra (eval_sample=0 → tudo)
+static EvalMetrics evaluate_solution_cpu(
+    const vector<int>& solution,
+    const vector<double>& h_X, int N, int F,
+    int eval_sample)
+{
+    // Extrair treino (instâncias selecionadas) — label na última coluna
+    int Nfeat = F - 1;
+    vector<int> train_idx;
+    train_idx.reserve(N / 2);
+    for (int i = 0; i < N; ++i)
+        if (solution[i] == 1) train_idx.push_back(i);
+
+    int Ntr = (int)train_idx.size();
+    EvalMetrics m{};
+    m.selected  = Ntr;
+    m.reduction = 1.0 - (double)Ntr / N;
+    if (Ntr == 0) return m;
+
+    // Montar conjunto de teste (sample ou tudo)
+    vector<int> test_idx(N);
+    for (int i = 0; i < N; ++i) test_idx[i] = i;
+    if (eval_sample > 0 && N > eval_sample) {
+        // reservoir sampling
+        for (int i = eval_sample; i < N; ++i) {
+            int j = rand() % (i + 1);
+            if (j < eval_sample) test_idx[j] = i;
+        }
+        test_idx.resize(eval_sample);
+    }
+    int Nte = (int)test_idx.size();
+
+    // 1-NN brute-force (distância ao quadrado — suficiente para argmin)
+    int tp = 0, fp = 0, tn = 0, fn = 0;
+    double pos_class = 1.0;  // assume classe positiva = 1
+    for (int ti = 0; ti < Nte; ++ti) {
+        int t = test_idx[ti];
+        const double* xt = h_X.data() + (long long)t * F;
+        double true_label = xt[Nfeat];
+
+        double best_d = 1e300;
+        double pred_label = 0.0;
+        for (int si = 0; si < Ntr; ++si) {
+            int s = train_idx[si];
+            const double* xs = h_X.data() + (long long)s * F;
+            double d = 0.0;
+            for (int k = 0; k < Nfeat; ++k) { double diff = xt[k]-xs[k]; d += diff*diff; }
+            if (d < best_d) { best_d = d; pred_label = xs[Nfeat]; }
+        }
+
+        bool pred_pos = (pred_label == pos_class);
+        bool true_pos = (true_label == pos_class);
+        if (pred_pos && true_pos)  tp++;
+        else if (pred_pos)         fp++;
+        else if (true_pos)         fn++;
+        else                       tn++;
+    }
+
+    m.acc       = (double)(tp + tn) / Nte;
+    m.precision = (tp + fp > 0) ? (double)tp / (tp + fp) : 0.0;
+    m.recall    = (tp + fn > 0) ? (double)tp / (tp + fn) : 0.0;
+    m.f1        = (m.precision + m.recall > 0)
+                  ? 2.0 * m.precision * m.recall / (m.precision + m.recall) : 0.0;
+    return m;
+}
 
 // Lê CSV separado por ';', descarta header, retorna linhas como double[]
 // F_out = número de colunas (features + classe)
@@ -44,11 +114,11 @@ static vector<vector<double>> read_csv(const string& path, int& F_out) {
     return rows;
 }
 
-static void write_solutions_csv(const vector<int>& colony, int N, const string& path) {
+static void write_solutions_csv(const vector<int>& colony, int K, int N, const string& path) {
     ofstream out(path);
-    for (int i = 0; i < N; ++i) {
+    for (int k = 0; k < K; ++k) {
         for (int j = 0; j < N; ++j) {
-            out << colony[(long long)i * N + j];
+            out << colony[(long long)k * N + j];
             if (j + 1 < N) out << ";";
         }
         out << "\n";
@@ -68,9 +138,10 @@ int main(int argc, char** argv) {
     string path     = data_dir + "/" + dataset + ".csv";
 
     // Parâmetros ACO
-    const double initial_pheromone = 1.0;
+    const int    K                 = 64;
+    const double initial_pheromone = 0.5;   // P(select)=0.5 inicialmente
     const double evaporation_rate  = 0.1;
-    const double Q                 = 1.0;
+    const double Q                 = evaporation_rate;  // mantém tau ≈ 0.5 no steady-state
     const int    BLOCK             = 256;
 
     // Leitura do dataset
@@ -93,7 +164,7 @@ int main(int argc, char** argv) {
     printf("Estrategia: %s\n", onthefly ? "on-the-fly (N>10k)" : "pre-computado");
 
     // Alocar GPU
-    GpuBuffers buf = alloc_gpu(N, F, onthefly);
+    GpuBuffers buf = alloc_gpu(N, K, F, onthefly);
 
     // Upload X
     cudaEvent_t ev0, ev1; float ms;
@@ -112,11 +183,11 @@ int main(int argc, char** argv) {
     CUDA_CHECK(cudaMemcpy(buf.d_pheromone, h_phe.data(),
                           N * sizeof(double), cudaMemcpyHostToDevice));
 
-    // Inicializar colônia: -1 exceto diagonal = 1
-    vector<int> h_colony((long long)N * N, -1);
-    for (int i = 0; i < N; ++i) h_colony[(long long)i * N + i] = 1;
+    // Inicializar colônia: -1 exceto posição inicial de cada formiga k = k
+    vector<int> h_colony((long long)K * N, -1);
+    for (int k = 0; k < K; ++k) h_colony[(long long)k * N + k] = 1;
     CUDA_CHECK(cudaMemcpy(buf.d_colony, h_colony.data(),
-                          (long long)N * N * sizeof(int), cudaMemcpyHostToDevice));
+                          (long long)K * N * sizeof(int), cudaMemcpyHostToDevice));
 
     // Pré-computar distâncias e visibilidades se não onthefly
     if (!onthefly) {
@@ -136,9 +207,10 @@ int main(int argc, char** argv) {
 
     // Inicializar cuRAND
     curandState* d_rng;
-    CUDA_CHECK(cudaMalloc(&d_rng, (long long)N * sizeof(curandState)));
-    int grid_rng = (N + BLOCK - 1) / BLOCK;
-    init_curand_kernel<<<grid_rng, BLOCK>>>(d_rng, 42ULL, N);
+    // K*N estados cuRAND: 1 por par (formiga, instância)
+    CUDA_CHECK(cudaMalloc(&d_rng, (long long)K * N * sizeof(curandState)));
+    int grid_rng = (K * N + BLOCK - 1) / BLOCK;
+    init_curand_kernel<<<grid_rng, BLOCK>>>(d_rng, 42ULL, K * N);
     CUDA_CHECK(cudaDeviceSynchronize());
 
     // Buffer de depósito de feromônio
@@ -146,64 +218,74 @@ int main(int argc, char** argv) {
     CUDA_CHECK(cudaMalloc(&d_deposit, N * sizeof(double)));
 
     // Loop principal do ACO
-    int grid_ants = (N + BLOCK - 1) / BLOCK;
+    int grid_ants = (K * N + BLOCK - 1) / BLOCK;
     int grid_phe  = (N + BLOCK - 1) / BLOCK;
+    const int max_iters = 50;
+    const int eval_sample = (N > 10000) ? 5000 : 0;
+
+    // Buffer host para log por iteração (1 formiga = N ints)
+    vector<int> h_ant0(N);
 
     CUDA_CHECK(cudaEventRecord(ev0));
 
-    bool colony_complete = false;
-    int  max_iters = N * 2 + 100;  // safety bound
-    int  iter = 0;
+    cudaEvent_t iter_ev0, iter_ev1;
+    CUDA_CHECK(cudaEventCreate(&iter_ev0));
+    CUDA_CHECK(cudaEventCreate(&iter_ev1));
 
-    while (!colony_complete && iter < max_iters) {
-        // Zerar buffer de depósito
+    for (int iter = 0; iter < max_iters; ++iter) {
+        CUDA_CHECK(cudaEventRecord(iter_ev0));
+
+        // Zerar buffer de depósito (colônia é sobrescrita pelo kernel)
         CUDA_CHECK(cudaMemset(d_deposit, 0, N * sizeof(double)));
 
-        // Construção de soluções + depósito
+        // Construção paralela: K*N threads, 1 por (formiga, instância)
         ant_construction_kernel<<<grid_ants, BLOCK>>>(
-            buf.d_X, buf.d_dist, buf.d_vis,
             buf.d_pheromone, buf.d_colony,
             d_deposit, d_rng,
-            N, F, (int)onthefly);
+            N, K);
         CUDA_CHECK(cudaDeviceSynchronize());
 
-        // Aplicar depósito + evaporação
+        // Update feromônio: tau = (1-rho)*tau + rho*deposit_fraction
+        // Mantém tau ∈ [0,1] sem deriva (evaporação já incorporada no apply)
         apply_deposit_kernel<<<grid_phe, BLOCK>>>(
             buf.d_pheromone, d_deposit, N, Q);
-        pheromone_evaporation_kernel<<<grid_phe, BLOCK>>>(
-            buf.d_pheromone, N, evaporation_rate);
         CUDA_CHECK(cudaDeviceSynchronize());
 
-        // Verificar colônia completa via sample: copiar e checar
-        // (para N grande, checar apenas uma amostra das formigas para performance)
-        int check_n = (N < 1000) ? N : 1000;
-        vector<int> h_sample((long long)check_n * N);
-        CUDA_CHECK(cudaMemcpy(h_sample.data(), buf.d_colony,
-                              (long long)check_n * N * sizeof(int),
-                              cudaMemcpyDeviceToHost));
-        colony_complete = true;
-        for (int x : h_sample) {
-            if (x < 0) { colony_complete = false; break; }
-        }
-        ++iter;
+        CUDA_CHECK(cudaEventRecord(iter_ev1));
+        CUDA_CHECK(cudaEventSynchronize(iter_ev1));
+        float iter_ms; CUDA_CHECK(cudaEventElapsedTime(&iter_ms, iter_ev0, iter_ev1));
+
+        // Log: baixar formiga 0, avaliar métricas com 1-NN
+        CUDA_CHECK(cudaMemcpy(h_ant0.data(), buf.d_colony,
+                              N * sizeof(int), cudaMemcpyDeviceToHost));
+        auto t_eval0 = chrono::high_resolution_clock::now();
+        EvalMetrics em = evaluate_solution_cpu(h_ant0, h_X, N, F, eval_sample);
+        auto t_eval1 = chrono::high_resolution_clock::now();
+        double eval_ms = chrono::duration<double, milli>(t_eval1 - t_eval0).count();
+        printf("Iter %d: F1=%.4f, Acc=%.4f, Reducao=%.1f%%, GPU=%.0f ms, Eval=%.0f ms%s\n",
+               iter + 1, em.f1, em.acc, em.reduction * 100.0, iter_ms, eval_ms,
+               eval_sample > 0 ? " (sample)" : "");
     }
+
+    CUDA_CHECK(cudaEventDestroy(iter_ev0));
+    CUDA_CHECK(cudaEventDestroy(iter_ev1));
 
     CUDA_CHECK(cudaEventRecord(ev1));
     CUDA_CHECK(cudaEventSynchronize(ev1));
     CUDA_CHECK(cudaEventElapsedTime(&ms, ev0, ev1));
-    printf("Tempo compute GPU: %.2f ms (%d iters)\n", ms, iter);
+    printf("Tempo compute GPU total: %.2f ms (%d iters)\n", ms, max_iters);
 
     // Download resultado final
     CUDA_CHECK(cudaEventRecord(ev0));
     CUDA_CHECK(cudaMemcpy(h_colony.data(), buf.d_colony,
-                          (long long)N * N * sizeof(int), cudaMemcpyDeviceToHost));
+                          (long long)K * N * sizeof(int), cudaMemcpyDeviceToHost));
     CUDA_CHECK(cudaEventRecord(ev1));
     CUDA_CHECK(cudaEventSynchronize(ev1));
     CUDA_CHECK(cudaEventElapsedTime(&ms, ev0, ev1));
     printf("Transferencia D->H colony: %.2f ms\n", ms);
 
     // Salvar resultado
-    write_solutions_csv(h_colony, N, "results/solutions_cuda.csv");
+    write_solutions_csv(h_colony, K, N, "results/solutions_cuda.csv");
 
     // Cleanup
     free_gpu(buf);

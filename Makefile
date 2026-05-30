@@ -7,7 +7,7 @@
 
 CXX       = g++
 NVCC      = nvcc
-CXXFLAGS  = -std=c++17 -O2 -Wall -Wextra
+CXXFLAGS  = -std=c++17 -O3 -march=native -Wall -Wextra
 NVCCFLAGS = -std=c++17 -O2
 OMPFLAGS  = -fopenmp
 BUILD_DIR = build

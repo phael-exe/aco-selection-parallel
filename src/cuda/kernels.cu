@@ -56,13 +56,18 @@ __global__ void pheromone_evaporation_kernel(
     pheromone[i] *= (1.0 - evap_rate);
 }
 
-// Aplica depósitos acumulados ao vetor de feromônio
+// Aplica depósitos: weighted average tau = (1-rho)*tau + rho*deposit
+// deposit[i] ∈ [0,1] = fração de formigas que selecionou i
+// Mantém tau ∈ [0,1] automaticamente, sem deriva.
 __global__ void apply_deposit_kernel(
     double* pheromone, const double* deposit, int N, double Q)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= N) return;
-    pheromone[i] += deposit[i];  // Q já é incorporado no cálculo do depósito
+    // Q é usado como rho aqui: tau = (1-rho)*tau + rho*deposit
+    pheromone[i] = (1.0 - Q) * pheromone[i] + Q * deposit[i];
+    if (pheromone[i] < 1e-3) pheromone[i] = 1e-3;  // mínimo p=0.001
+    if (pheromone[i] > 1.0)  pheromone[i] = 1.0;
 }
 
 // T19 — 1-NN paralelo
@@ -102,102 +107,36 @@ __global__ void init_curand_kernel(curandState* states, unsigned long long seed,
     curand_init(seed, tid, 0, &states[tid]);
 }
 
-// T14 + T15 — Construção de solução + depósito de feromônio
-// 1 thread = 1 formiga. colony[ant*N+j]: 1=visitado, 0=rejeitado, -1=não visitado
-// pheromone: vetor 1D[N]. deposit: buffer acumulador para atomicAdd.
-// onthefly=1: calcula distância dentro do kernel (para N>10k)
-// onthefly=0: usa vis pré-computado
+// T14 + T15 — Construção paralela: 1 thread por par (formiga, instância)
+// K*N threads totais. Thread tid → ant=tid/N, inst=tid%N
+// Cada thread decide independentemente se seleciona inst para ant.
+// P(select) = pheromone[inst] ∈ [0,1]. Sem loops O(N) internos.
 __global__ void ant_construction_kernel(
-    const double* X,
-    const double* dist,
-    const double* vis,
     const double* pheromone,
     int*          colony,
     double*       deposit,
     curandState*  rng_states,
-    int N, int F, int onthefly)
+    int N, int K)
 {
-    int ant = blockIdx.x * blockDim.x + threadIdx.x;
-    if (ant >= N) return;
+    int tid  = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid >= K * N) return;
 
-    curandState local_state = rng_states[ant];
-    int pos = ant;  // posição atual da formiga
+    int ant  = tid / N;
+    int inst = tid % N;
 
-    bool has_unvisited = true;
-    while (has_unvisited) {
-        // Calcular smell total (denominador da probabilidade)
-        double smell = 0.0;
-        for (int j = 0; j < N; ++j) {
-            if (colony[(long long)ant * N + j] < 0) {
-                double eta;
-                if (onthefly) {
-                    double sum = 0.0;
-                    for (int k = 0; k < F; ++k) {
-                        double d = X[(long long)pos * F + k] - X[(long long)j * F + k];
-                        sum += d * d;
-                    }
-                    double dist_ij = sqrt(sum);
-                    eta = (dist_ij == 0.0) ? 0.0 : 1.0 / dist_ij;
-                } else {
-                    eta = vis[(long long)pos * N + j];
-                }
-                smell += pheromone[j] * eta;
-            }
-        }
+    curandState local = rng_states[tid];
 
-        has_unvisited = false;
-        for (int j = 0; j < N; ++j) {
-            if (colony[(long long)ant * N + j] < 0) {
-                has_unvisited = true;
-                double eta;
-                if (onthefly) {
-                    double sum = 0.0;
-                    for (int k = 0; k < F; ++k) {
-                        double d = X[(long long)pos * F + k] - X[(long long)j * F + k];
-                        sum += d * d;
-                    }
-                    double dist_ij = sqrt(sum);
-                    eta = (dist_ij == 0.0) ? 0.0 : 1.0 / dist_ij;
-                } else {
-                    eta = vis[(long long)pos * N + j];
-                }
+    // Seleção guiada por feromônio: tau[i] influencia probabilidade em torno de 0.5
+    // tau=0.5 → p=0.5 (baseline aleatório igual ao sequencial)
+    // tau>0.5 → mais provável selecionar; tau<0.5 → menos provável
+    double tau = pheromone[inst];
+    double p = tau;  // tau mantido em [0,1] pelo update rule
+    int selected = (curand_uniform_double(&local) < p) ? 1 : 0;
+    rng_states[tid] = local;
 
-                double prob = (smell == 0.0) ? 0.0 : (pheromone[j] * eta) / smell;
-                // Fator aleatório: 0 ou 1 (equivalente ao baseline ajk = my_rand(0,1))
-                int ajk = (curand_uniform(&local_state) < 0.5f) ? 0 : 1;
-                double final_prob = prob * (double)ajk;
+    colony[(long long)ant * N + inst] = selected;
 
-                if (final_prob != 0.0) {
-                    colony[(long long)ant * N + j] = 1;
-                    pos = j;
-                    break;
-                } else {
-                    colony[(long long)ant * N + j] = 0;
-                }
-            }
-        }
-    }
-
-    // Calcular tour_length e depositar feromônio (Q=1 / tour_length)
-    double tour_len = 0.0;
-    for (int j = 0; j < N; ++j) {
-        if (colony[(long long)ant * N + j] == 1 && j != ant) {
-            if (!onthefly && dist != nullptr) {
-                // Usar distância pré-computada como proxy do comprimento do tour
-                double d = dist[(long long)ant * N + j];
-                tour_len += d;
-            } else {
-                tour_len += 1.0;  // proxy: conta instâncias visitadas
-            }
-        }
-    }
-
-    double ant_deposit = (tour_len == 0.0) ? 0.0 : 1.0 / tour_len;
-    for (int j = 0; j < N; ++j) {
-        if (colony[(long long)ant * N + j] == 1 && j != ant) {
-            atomicAddDouble(&deposit[j], ant_deposit);
-        }
-    }
-
-    rng_states[ant] = local_state;
+    // Depósito fracionário: fração de formigas que selecionou inst
+    if (selected)
+        atomicAddDouble(&deposit[inst], 1.0 / K);
 }
