@@ -2,7 +2,6 @@
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-import sys
 
 # Carregar heart_failure.csv
 data = np.loadtxt('data/baseline/heart_failure.csv', delimiter=';', skiprows=1)
@@ -31,16 +30,16 @@ rec = recall_score(Y_test, Y_pred)
 f1 = f1_score(Y_test, Y_pred)
 reduction = 1.0 - (len(X_train) / len(X))
 
-print(f"Python (scikit-learn) 1-NN:")
+print("Python (scikit-learn) 1-NN:")
 print(f"Acurácia: {acc:.6f}")
 print(f"Precisão: {prec:.6f}")
 print(f"Recall: {rec:.6f}")
 print(f"F1-Score: {f1:.6f}")
 print(f"Redução: {reduction:.4f}")
 print()
-print(f"C++ resultados para comparar:")
-print(f"Acurácia: 0.819398")
-print(f"Precisão: 0.714286")
-print(f"Recall: 0.729167")
-print(f"F1-Score: 0.721649")
-print(f"Redução: 0.4582 (162/299)")
+print("C++ resultados para comparar:")
+print("Acurácia: 0.819398")
+print("Precisão: 0.714286")
+print("Recall: 0.729167")
+print("F1-Score: 0.721649")
+print("Redução: 0.4582 (162/299)")
