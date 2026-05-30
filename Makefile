@@ -7,7 +7,7 @@
 
 CXX       = g++
 NVCC      = nvcc
-CXXFLAGS  = -std=c++17 -O2 -Wall -Wextra
+CXXFLAGS  = -std=c++17 -O3 -march=native -Wall -Wextra
 NVCCFLAGS = -std=c++17 -O2
 OMPFLAGS  = -fopenmp
 BUILD_DIR = build
@@ -63,7 +63,7 @@ else ifeq ($(NVCC_AVAILABLE),)
 	@echo "[cuda] nvcc nao encontrado — pulando."
 else
 	@mkdir -p $(BUILD_DIR)
-	$(NVCC) $(NVCCFLAGS) -o $@ $(CUDA_SRC)
+	$(NVCC) $(NVCCFLAGS) -o $@ $(CUDA_SRC) -lcurand
 	@echo "[cuda] OK -> $@"
 endif
 
