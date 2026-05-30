@@ -1,5 +1,6 @@
 # Referências internas (não versionadas)
 .refs/
+.cursor/
 
 # Python
 .venv/
