@@ -29,6 +29,19 @@ Três escolhas do projeto que o artigo confirma:
 2. **C++ puro, sem bibliotecas pesadas** — o artigo mostra que isso reduz cache miss / page fault.
 3. **Seleção de instâncias é o problema** — descartar linhas redundantes preservando acurácia.
 
+> ⚠️ **Correção de algoritmo nesta revisão.** A construção de solução passou a usar **seleção
+> estocástica guiada por feromônio**: cada instância entra com probabilidade
+> `p_i = τ_i^α · η_i^β / max_j(τ_j^α · η_j^β)`. Antes a decisão era uma moeda fixa de 50% que
+> **ignorava o feromônio** — o τ era calculado, depositado e evaporado, mas nunca lido na decisão,
+> logo **não era ACO de fato** (era busca aleatória com elitismo). Isso veio de um erro do baseline
+> (Python/C++), onde a probabilidade `τ·η` era computada e ordenada, mas a escolha final caía num
+> `random.randint(0,1)` (moeda), descartando o valor — provavelmente confusão entre `randint(0,1)`
+> e `random()`. A correção segue a **ideia** do baseline (feromônio dirige a seleção), adaptada à
+> estrutura **binária por-instância** do projeto (que paraleliza de forma embaraçosamente paralela,
+> ao contrário da construção-de-caminho estilo TSP do baseline). Os pontos de paralelização da US11
+> e o determinismo da US12 são **preservados** (a construção lê o feromônio como snapshot read-only;
+> o RNG é semeado por `(iter,k)`). `α=β=1` por default; ajustáveis via `--alpha`/`--beta`.
+
 ---
 
 ## US11 — Paralelização do Loop de Formigas com OpenMP
@@ -37,12 +50,13 @@ Três escolhas do projeto que o artigo confirma:
 
 | # | Região | Onde (arquivo:linha) | Diretiva usada | Por que assim |
 |---|--------|----------------------|----------------|---------------|
-| 1 | Loop de formigas (construção) | [aco_omp.cpp:279](../src/openmp/aco_omp.cpp#L279) | `#pragma omp parallel for schedule(dynamic)` | Cada formiga escreve só na sua fatia `colony[k*N..]` → embaraçosamente paralelo. RNG semeado por `(iter,k)` → resultado independente do escalonamento. |
+| 1 | Loop de formigas (construção) | [aco_omp.cpp:314](../src/openmp/aco_omp.cpp#L314) | `#pragma omp parallel for schedule(dynamic)` | Cada formiga escreve só na sua fatia `colony[k*N..]` e lê `select_prob` (read-only) → embaraçosamente paralelo. RNG semeado por `(iter,k)` → resultado independente do escalonamento. |
 | 2 | Cálculo de distância euclidiana | [aco_omp.cpp:48](../src/openmp/aco_omp.cpp#L48) | `#pragma omp parallel for schedule(dynamic)` (**não** `collapse(2)`) | Loop **triangular** (`j=i+1`): `collapse(2)` exige loops retangulares e produziria índices inválidos. `schedule(dynamic)` corrige o desbalanceamento natural do triângulo (linhas com `i` pequeno têm mais trabalho). |
 | 3 | Depósito de feromônio | [aco_omp.cpp:176](../src/openmp/aco_omp.cpp#L176) | `#pragma omp atomic` | Várias formigas podem depositar na mesma instância `i` → race condition na escrita. `atomic` tem menos overhead que `critical` (confirmado pelo artigo). |
 | 4 | Evaporação de feromônio | [aco_omp.cpp:184](../src/openmp/aco_omp.cpp#L184) | `#pragma omp parallel for` | Cada instância evapora de forma independente → sem dependências. |
-| 5 | Depósito (loop sobre K formigas) | [aco_omp.cpp:289](../src/openmp/aco_omp.cpp#L289) | `#pragma omp parallel for schedule(dynamic)` | Paraleliza a aplicação do depósito sobre as K formigas; a escrita interna é protegida pelo `atomic` (#3). |
-| 6 | Proxy-fitness (contagem) | [aco_omp.cpp:300](../src/openmp/aco_omp.cpp#L300) | `#pragma omp parallel for` | Cada `k` escreve só `ant_scores[k]` → sem conflito. |
+| 5 | Depósito (loop sobre K formigas) | [aco_omp.cpp:324](../src/openmp/aco_omp.cpp#L324) | `#pragma omp parallel for schedule(dynamic)` | Paraleliza a aplicação do depósito sobre as K formigas; a escrita interna é protegida pelo `atomic` (#3). |
+| 6 | Proxy-fitness (contagem) | [aco_omp.cpp:335](../src/openmp/aco_omp.cpp#L335) | `#pragma omp parallel for` | Cada `k` escreve só `ant_scores[k]` → sem conflito. |
+| 7 | Probabilidade de seleção `τ^α·η^β` | [aco_omp.cpp:210](../src/openmp/aco_omp.cpp#L210) | `#pragma omp parallel for reduction(max:wmax)` | Novo passo do ACO corrigido (seleção guiada por feromônio). `reduction(max:)` é independente da ordem (max não acumula arredondamento) → preserva o determinismo byte-idêntico entre threads. |
 
 **Compilação** — target `openmp` no [Makefile:45](../Makefile#L45) com `OMPFLAGS = -fopenmp`
 ([Makefile:12](../Makefile#L12)). Build via `make openmp` → `build/aco_omp`.
@@ -61,7 +75,7 @@ para "schedule(dynamic) no loop externo (collapse(2) inválido para laço triang
 | Item do checklist | Onde / evidência | Status |
 |---|---|---|
 | Copiar código sequencial para `src/openmp/` | `src/openmp/*.cpp` (9 arquivos) | ✅ |
-| `#pragma omp parallel for` no loop de formigas | [aco_omp.cpp:279](../src/openmp/aco_omp.cpp#L279) | ✅ |
+| `#pragma omp parallel for` no loop de formigas | [aco_omp.cpp:314](../src/openmp/aco_omp.cpp#L314) | ✅ |
 | Paralelizar distância (`collapse(2)`) | [aco_omp.cpp:48](../src/openmp/aco_omp.cpp#L48) — `schedule(dynamic)` (collapse(2) inviável; ver acima) | ✅ (implementação superior; texto do item impreciso) |
 | `omp atomic` no depósito | [aco_omp.cpp:176](../src/openmp/aco_omp.cpp#L176) | ✅ |
 | Paralelizar evaporação | [aco_omp.cpp:184](../src/openmp/aco_omp.cpp#L184) | ✅ |
@@ -83,11 +97,11 @@ checklist descreve algo que (corretamente) não foi feito; o código faz a escol
 |------|-------|
 | CPU | Intel Core i5-12450HX — 12 núcleos lógicos (8 físicos: 4P+4E) |
 | Threads | 1, 2, 4, 8, 16 (16 = oversubscrição proposital, > 12 cores) |
-| Parâmetros ACO | `--ants 64 --iter 100` (idêntico a US11 e à validação sequencial) |
+| Parâmetros ACO | `--ants 64 --iter 100 --alpha 1 --beta 1` (idêntico a US11 e à validação sequencial) |
 | Seed OpenMP | fixo `42` → determinístico e independente do nº de threads |
 | Speedup | `T1 / Tp` sobre `Tempo ACO` (ms) do `std::chrono` interno |
 | Critério de acurácia | OpenMP vs sequencial dentro de ±2% |
-| Artefatos | `results/validation_openmp.csv` (50 linhas) + `results/validation_openmp_report.md` |
+| Artefatos | `results/validation_openmp.csv` (45 linhas: 9 datasets × 5 threads) + `results/validation_openmp_report.md` |
 
 > A referência sequencial usa `srand(time(NULL))` (**não-determinística**); o comparativo
 > seq vs OpenMP é uma **amostra única**, sujeita a ruído em bases pequenas.
@@ -96,52 +110,57 @@ checklist descreve algo que (corretamente) não foi feito; o código faz a escol
 
 A prova de corretude **não** é "ficou parecido com o sequencial", e sim: **o OpenMP dá resultado
 byte-idêntico para 1, 2, 4, 8 e 16 threads.** Garantido por construção — RNG por-formiga semeado
-só por `(iter,k)` ([aco_omp.cpp:281](../src/openmp/aco_omp.cpp#L281)) — e confirmado em **10/10
-bases** com variação **0.000000** de acurácia e F1 entre threads.
+só por `(iter,k)` ([aco_omp.cpp:316](../src/openmp/aco_omp.cpp#L316)) e seleção por roleta lendo o
+feromônio como snapshot read-only com `reduction(max:)` independente da ordem — e confirmado em
+**9/9 bases** com variação **0.000000** de acurácia e F1 entre threads (CDC pendente de re-execução).
 
 ### Resultado 2 — Acurácia OpenMP vs Sequencial (melhor ou pior?)
 
 | Dataset | N | Acc OpenMP | Acc Sequencial | Δ (%) | Status |
 |---|---:|---:|---:|---:|---|
-| heart_failure | 299 | 0.839465 | 0.822742 | +1.67 | OK |
-| haberman | 306 | 0.872549 | 0.872549 | 0.00 | OK |
-| cirrhosis | 418 | 0.744019 | 0.717703 | **+2.63** | **WARN** |
-| diabetes | 768 | 0.872396 | 0.873698 | −0.13 | OK |
-| tic-tac-toe | 958 | 0.874739 | 0.864301 | +1.04 | OK |
-| yeast | 1484 | 0.769542 | 0.774933 | −0.54 | OK |
-| vaccine | 3152 | 0.920368 | 0.920685 | −0.03 | OK |
-| Employee | 4653 | 0.844187 | 0.847410 | −0.32 | OK |
-| brain-stroke | 4981 | 0.961855 | 0.963260 | −0.14 | OK |
+| heart_failure | 299 | 0.916388 | 0.936455 | **−2.01** | **WARN** |
+| haberman | 306 | 0.931373 | 0.944444 | −1.31 | OK |
+| cirrhosis | 418 | 0.894737 | 0.863636 | **+3.11** | **WARN** |
+| diabetes | 768 | 0.941406 | 0.936198 | +0.52 | OK |
+| tic-tac-toe | 958 | 0.983299 | 0.983299 | 0.00 | OK |
+| yeast | 1484 | 0.962938 | 0.966981 | −0.40 | OK |
+| vaccine | 3152 | 0.978109 | 0.979378 | −0.13 | OK |
+| Employee | 4653 | 0.870621 | 0.874490 | −0.39 | OK |
+| brain-stroke | 4981 | 0.972897 | 0.971893 | +0.10 | OK |
 
-**8/9 dentro de ±2%.** O único WARN (cirrhosis, +2,63%) **não é defeito da paralelização** (o
-OpenMP é determinístico, variação 0% entre threads): é desvio contra a referência sequencial
-não-determinística, em base pequena e sensível ao sorteio inicial. Note que o OpenMP ficou
-**melhor** (0.744 vs 0.718). A propriedade exigida pela US12 — acurácia preservada em **todas as
-configs de thread** — é satisfeita de forma **exata (0%)**.
+**7/9 dentro de ±2%.** Os dois WARN (heart_failure −2,01% e cirrhosis +3,11%) **não são defeito da
+paralelização** (o OpenMP é determinístico, variação 0% entre threads): são desvios contra a
+referência sequencial não-determinística, nas duas menores bases (299 e 418 inst.), sensíveis ao
+sorteio inicial. Em cirrhosis o OpenMP ficou **melhor** (0.895 vs 0.864). A propriedade exigida pela
+US12 — acurácia preservada em **todas as configs de thread** — é satisfeita de forma **exata (0%)**.
 
 ### Resultado 3 — Curva de speedup (T1 / Tp)
 
 | Dataset | N | 1t | 2t | 4t | 8t | 16t | Ótimo |
 |---|---:|---:|---:|---:|---:|---:|---|
-| heart_failure | 299 | 1.00 | 1.20 | 0.81 | 1.33 | 0.85 | ~1 (sem ganho real) |
-| haberman | 306 | 1.00 | **1.87** | 1.66 | 1.35 | 0.86 | 2 |
-| cirrhosis | 418 | 1.00 | 1.63 | **2.47** | 1.53 | 1.32 | 4 |
-| diabetes | 768 | 1.00 | 1.57 | **2.76** | 1.46 | 1.33 | 4 |
-| tic-tac-toe | 958 | 1.00 | 1.92 | **2.05** | 1.83 | 1.71 | 4 |
-| yeast | 1484 | 1.00 | 1.57 | **2.39** | 1.53 | 1.47 | 4 |
-| vaccine | 3152 | 1.00 | 1.89 | 3.32 | 2.86 | **4.09** | 16 (4t já dá 3.32) |
-| Employee | 4653 | 1.00 | 1.82 | 3.11 | 2.76 | **3.23** | 16 (4t já dá 3.11) |
-| brain-stroke | 4981 | 1.00 | 1.85 | 3.20 | 3.27 | **3.97** | 16 (4t já dá 3.20) |
+| heart_failure | 299 | 1.00 | 1.47 | 1.37 | **1.95** | 1.92 | ~8 (ruidoso) |
+| haberman | 306 | 1.00 | 1.33 | 1.77 | **1.84** | 1.30 | ~8 (ruidoso) |
+| cirrhosis | 418 | 1.00 | 1.14 | 1.37 | **1.69** | 1.59 | ~8 |
+| diabetes | 768 | 1.00 | **2.31** | 2.29 | 1.37 | 1.48 | 2–4 |
+| tic-tac-toe | 958 | 1.00 | 1.31 | 1.36 | 1.40 | **1.50** | ~16 (marginal) |
+| yeast | 1484 | 1.00 | 1.36 | 1.23 | 1.35 | **1.48** | ~16 (marginal) |
+| vaccine | 3152 | 1.00 | 1.65 | 2.55 | 1.86 | **2.57** | 4–16 |
+| Employee | 4653 | 1.00 | 1.69 | 2.41 | 2.05 | **2.61** | 4–16 |
+| brain-stroke | 4981 | 1.00 | 1.57 | 2.43 | 1.94 | **2.57** | 4–16 |
 
 Bases com tempo < ~100 ms (heart_failure, haberman) têm speedup **ruidoso** — o custo de criar/
 sincronizar threads é da ordem do trabalho útil; conclusão prática: "não compensa paralelizar".
+Os valores são **amostra única** por configuração; o que importa é a tendência (mais N → mais ganho),
+não o número exato. O ganho real (~2,6×) aparece nas bases de 3–5k.
 
-### Resultado 4 — CDC Diabetes (larga escala, 253.680 instâncias)
+### Resultado 4 — CDC Diabetes (larga escala, 253.680 instâncias) — ⏳ PENDENTE
 
-Modo *on-the-fly* (N > 10.000, [aco_omp.cpp:228](../src/openmp/aco_omp.cpp#L228)) — sem matriz
-N×N, pico de RAM ~200 MB. Validação total ~3,4 h (1 thread ≈ 90 min).
+> **Re-execução pendente.** A tabela abaixo é da versão **anterior** (algoritmo 50/50) e **não vale
+> mais** para o novo algoritmo de roleta. O run completo custa **~3,4 h** (1 thread ≈ 90 min) e está
+> agendado: `scripts/run_validation_openmp.sh --cdc`. Modo *on-the-fly* (N > 10.000,
+> [aco_omp.cpp:257](../src/openmp/aco_omp.cpp#L257)) — sem matriz N×N, pico de RAM ~200 MB.
 
-| Threads | Tempo | Speedup | Acurácia | F1 |
+| Threads | Tempo (algoritmo antigo) | Speedup | Acurácia | F1 |
 |---:|---:|---:|---:|---:|
 | 1 | 89,8 min | 1.00 | 0.900465 | 0.641407 |
 | 2 | 48,9 min | 1.84 | 0.900465 | 0.641407 |
@@ -149,11 +168,11 @@ N×N, pico de RAM ~200 MB. Validação total ~3,4 h (1 thread ≈ 90 min).
 | 8 | 20,2 min | 4.45 | 0.900465 | 0.641407 |
 | **16** | **17,3 min** | **5.19** | 0.900465 | 0.641407 |
 
-**Melhor escalabilidade do projeto:** curva **monotônica até 16 threads (5.19×)**, sem platô.
-Determinismo confirmado também aqui (acc/F1 idênticos 1→16t). É o caso que mais justifica o
-paralelismo — o volume do 1-NN (~126k treino × 253k teste por avaliação) amortiza o overhead.
+Na versão anterior foi a **melhor escalabilidade do projeto**: curva **monotônica até 16 threads
+(5.19×)**, sem platô. O determinismo (acc/F1 idênticos 1→16t) é garantido por construção também aqui;
+o run pendente atualiza tempo/qualidade, não re-prova corretude.
 
-### Por que o speedup máximo (~4×) fica abaixo do ideal (12×)?
+### Por que o speedup máximo fica abaixo do ideal (12×)?
 
 Esperado e coerente com o gargalo conhecido: por iteração, só as **top-K formigas (K=1–3)** são
 avaliadas com 1-NN, e a avaliação é **memory-bandwidth bound**. O paralelismo das formigas tem
@@ -165,28 +184,31 @@ antes de usar todos os núcleos. Por isso o ótimo **cresce com N**: ~4 threads 
 
 | Item do checklist | Evidência | Status |
 |---|---|---|
-| `OMP_NUM_THREADS=1` (~igual ao sequencial) | 1t medido; Δacc ≤ 1.67% (cirrhosis explicado) | ✅ |
-| Executar 2,4,8,16 threads | sweep completo nas 9 bases + CDC | ✅ |
-| Comparar acurácia OpenMP vs sequencial | 8/9 OK (±2%); WARN único = ruído do seq | ✅ |
-| Documentar speedup em `results/validation_openmp.csv` | gerado (50 linhas: 10 datasets × 5 threads) | ✅ |
-| Identificar ponto de saturação | nº ótimo cresce com N: ~4 threads → 16 (CDC) | ✅ |
-| 9 datasets + CDC Diabetes | **10/10 concluídos** | ✅ |
+| `OMP_NUM_THREADS=1` (~igual ao sequencial) | 1t medido; Δacc ≤ 3.11% (WARN explicado = ruído do seq) | ✅ |
+| Executar 2,4,8,16 threads | sweep completo nas 9 bases (CDC pendente) | ✅ |
+| Comparar acurácia OpenMP vs sequencial | 7/9 OK (±2%); 2 WARN = ruído do seq | ✅ |
+| Documentar speedup em `results/validation_openmp.csv` | regenerado (45 linhas: 9 datasets × 5 threads) | ✅ |
+| Identificar ponto de saturação | nº ótimo cresce com N: ~4 threads nas bases | ✅ |
+| 9 datasets + CDC Diabetes | 9/9 baseline · ⏳ CDC pendente de re-execução | ⏳ |
 
-**Veredito US12:** ✅ tecnicamente completa — as 5 caixas do checklist têm evidência.
+**Veredito US12:** ✅ baseline completo (9/9, determinístico) — falta re-rodar o CDC (~3,4 h, agendado).
 
 ---
 
 ## Resumo: melhor ou pior?
 
-- **Qualidade (acurácia):** preservada. 8/9 bases dentro de ±2% vs sequencial; determinismo
-  **exato (0%)** entre 1→16 threads em 10/10 bases. Em cirrhosis o OpenMP ficou **melhor**
-  (0.744 vs 0.718).
-- **Desempenho (speedup):** **melhor** e proporcional à escala. Bases médias (3–5k): **3,2–4,1×**
-  em 4–16 threads. Larga escala (CDC 253k): **5,19×** em 16 threads, escalando limpo.
+- **Algoritmo:** agora é ACO **de fato** — feromônio guia a seleção (`τ^α·η^β`), corrigindo o
+  50/50 herdado do baseline. Efeito: acurácia maior, redução menor (trade-off legítimo do ACO).
+- **Qualidade (acurácia):** preservada. 7/9 bases dentro de ±2% vs sequencial; determinismo
+  **exato (0%)** entre 1→16 threads em **9/9 bases**. Em cirrhosis o OpenMP ficou **melhor**
+  (0.895 vs 0.864).
+- **Desempenho (speedup):** **melhor** e proporcional à escala. Bases de 3–5k: **~2,4–2,6×**
+  em 4–16 threads. Larga escala (CDC 253k): ⏳ pendente de re-execução (antes: 5,19× em 16t).
 - **Custo:** bases < ~100 ms não compensam paralelizar (overhead ≈ trabalho).
 
 A versão OpenMP cumpre o objetivo do épico: paralelismo de CPU **sem GPU**, correto, com
-acurácia preservada e speedup mensurável e crescente — pronta para o benchmark comparativo (EP04).
+acurácia preservada e speedup mensurável e crescente. **Pendência:** re-rodar o CDC com o novo
+algoritmo antes do benchmark comparativo (EP04).
 
 ---
 

@@ -183,14 +183,35 @@ static void evaporate_pheromone(double* pheromone, size_t N, double rho) {
 // Helpers: Construção de Soluções
 // ---------------------------------------------------------------------------
 
-static void construct_solution_for_ant(int* ant_solution, size_t N,
-                                        const double* /* pheromone */, const double* /* visibility */) {
-    // Para cada instância não visitada, decidir seleção com 50% de chance
+// Calcula a probabilidade de inclusão de cada instância: peso τ_i^α · η_i^β
+// normalizado pelo MÁXIMO → select_prob[i] ∈ (0, 1]. Normalizar por máximo (e
+// não por soma) preserva a estrutura binária por-instância: a melhor instância
+// é quase sempre incluída e as piores raramente — enquanto normalizar por soma
+// daria p_i ≈ 1/N (subconjunto degenerado de ~1 instância).
+static void compute_select_prob(const double* pheromone, const double* visibility,
+                                size_t N, double alpha, double beta, double* select_prob) {
+    double wmax = 0.0;
+    for (size_t i = 0; i < N; ++i) {
+        double w = std::pow(pheromone[i], alpha) * std::pow(visibility[i], beta);
+        select_prob[i] = w;
+        if (w > wmax) wmax = w;
+    }
+    if (wmax <= 0.0) wmax = 1.0;  // guarda contra divisão por zero
+    for (size_t i = 0; i < N; ++i) {
+        select_prob[i] /= wmax;
+    }
+}
+
+// Constrói a solução de uma formiga por seleção estocástica guiada por feromônio:
+// cada instância não visitada entra com probabilidade select_prob[i] = τ_i^α·η_i^β/máx.
+// (Antes: moeda fixa de 50% que ignorava o feromônio — logo não era ACO de fato.
+// Esta é a correção do erro herdado do baseline, onde a probabilidade era
+// calculada mas descartada por um sorteio 0/1.)
+static void construct_solution_for_ant(int* ant_solution, size_t N, const double* select_prob) {
     for (size_t i = 0; i < N; ++i) {
         if (ant_solution[i] == -1) {  // não visitado
-            // Aplicar 50% de chance (baseline)
             double r = static_cast<double>(rand()) / RAND_MAX;
-            if (r < 0.5) {
+            if (r < select_prob[i]) {
                 ant_solution[i] = 1;  // selecionada
             } else {
                 ant_solution[i] = 0;  // rejeitada
@@ -223,6 +244,7 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
     double* distances = nullptr;
     double* pheromone = new double[N];
     double* visibility = new double[N];
+    double* select_prob = new double[N];  // prob. de inclusão por instância (recalc. a cada iter)
     int* colony = init_colony(config.K, N);
     
     // Calcular distâncias uma vez
@@ -263,10 +285,15 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
             colony[k * N + start_pos] = 1;
         }
         
+        // Recalcular a probabilidade de seleção a partir do feromônio atual
+        // (estado do fim da iteração anterior). Snapshot read-only durante toda
+        // a construção desta iteração — depósito/evaporação ocorrem depois.
+        compute_select_prob(pheromone, visibility, N, config.alpha, config.beta, select_prob);
+
         // Construir solução para cada formiga
         for (size_t k = 0; k < config.K; ++k) {
             int* ant_solution = colony + k * N;
-            construct_solution_for_ant(ant_solution, N, pheromone, visibility);
+            construct_solution_for_ant(ant_solution, N, select_prob);
         }
         
         // Depositar feromônio de todas as formigas
@@ -349,6 +376,7 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
     free_colony(colony);
     delete[] pheromone;
     delete[] visibility;
+    delete[] select_prob;
     if (distances != nullptr) {
         delete[] distances;
     }

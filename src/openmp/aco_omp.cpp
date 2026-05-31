@@ -194,14 +194,43 @@ static void evaporate_pheromone(double* pheromone, size_t N, double rho) {
 // Helpers: Construção de Soluções
 // ---------------------------------------------------------------------------
 
-static void construct_solution_for_ant(int* ant_solution, size_t N, std::mt19937& rng) {
-    // Para cada instância não visitada, decidir seleção com 50% de chance.
-    // Recebe um RNG próprio por formiga (thread-safe) — substitui o rand()
-    // global, que não é thread-safe.
+// Calcula a probabilidade de inclusão de cada instância: peso τ_i^α · η_i^β
+// normalizado pelo MÁXIMO → select_prob[i] ∈ (0, 1]. Normalizar por máximo (e
+// não por soma) preserva a estrutura binária por-instância: a melhor instância
+// é quase sempre incluída e as piores raramente — normalizar por soma daria
+// p_i ≈ 1/N (subconjunto degenerado de ~1 instância).
+//
+// Determinismo: `reduction(max:)` é independente da ordem (max não acumula
+// arredondamento em ponto flutuante) → wmax byte-idêntico para qualquer nº de
+// threads, e a divisão é independente por elemento. Esta função roda ANTES do
+// loop de formigas; durante a construção pheromone/visibility são read-only.
+static void compute_select_prob(const double* pheromone, const double* visibility,
+                                size_t N, double alpha, double beta, double* select_prob) {
+    double wmax = 0.0;
+    #pragma omp parallel for reduction(max:wmax)
+    for (size_t i = 0; i < N; ++i) {
+        double w = std::pow(pheromone[i], alpha) * std::pow(visibility[i], beta);
+        select_prob[i] = w;
+        if (w > wmax) wmax = w;
+    }
+    if (wmax <= 0.0) wmax = 1.0;  // guarda contra divisão por zero
+    #pragma omp parallel for
+    for (size_t i = 0; i < N; ++i) {
+        select_prob[i] /= wmax;
+    }
+}
+
+// Constrói a solução de uma formiga por seleção estocástica guiada por feromônio:
+// cada instância não visitada entra com probabilidade select_prob[i] = τ_i^α·η_i^β/máx.
+// Recebe um RNG próprio por formiga (thread-safe, semeado por (iter,k)) — junto
+// com o select_prob read-only, garante resultado byte-idêntico em qualquer nº de
+// threads. (Antes: moeda fixa de 50% que ignorava o feromônio — não era ACO de fato.)
+static void construct_solution_for_ant(int* ant_solution, size_t N,
+                                       const double* select_prob, std::mt19937& rng) {
     std::uniform_real_distribution<double> coin(0.0, 1.0);
     for (size_t i = 0; i < N; ++i) {
         if (ant_solution[i] == -1) {  // não visitado
-            if (coin(rng) < 0.5) {
+            if (coin(rng) < select_prob[i]) {
                 ant_solution[i] = 1;  // selecionada
             } else {
                 ant_solution[i] = 0;  // rejeitada
@@ -231,6 +260,7 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
     double* distances = nullptr;
     double* pheromone = new double[N];
     double* visibility = new double[N];
+    double* select_prob = new double[N];  // prob. de inclusão por instância (recalc. a cada iter)
     int* colony = init_colony(config.K, N);
 
     // Calcular distâncias uma vez (loop paralelizado em compute_distances_precomputed)
@@ -272,17 +302,22 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
             colony[k * N + start_pos] = 1;
         }
 
+        // Recalcular a probabilidade de seleção a partir do feromônio atual
+        // (estado do fim da iteração anterior). Snapshot read-only durante toda
+        // a construção desta iteração — depósito/evaporação ocorrem depois.
+        compute_select_prob(pheromone, visibility, N, config.alpha, config.beta, select_prob);
+
         // Construir solução para cada formiga — LOOP DE FORMIGAS (US11).
         // Embaraçosamente paralelo: cada formiga escreve apenas em sua própria
-        // fatia colony[k*N .. k*N+N). RNG semeado por (iter,k) → resultado
-        // independente do escalonamento de threads.
+        // fatia colony[k*N .. k*N+N) e lê select_prob (read-only). RNG semeado
+        // por (iter,k) → resultado independente do escalonamento de threads.
         #pragma omp parallel for schedule(dynamic)
         for (size_t k = 0; k < config.K; ++k) {
             std::mt19937 ant_rng(BASE_SEED
                 + static_cast<uint32_t>(iter) * static_cast<uint32_t>(config.K)
                 + static_cast<uint32_t>(k));
             int* ant_solution = colony + k * N;
-            construct_solution_for_ant(ant_solution, N, ant_rng);
+            construct_solution_for_ant(ant_solution, N, select_prob, ant_rng);
         }
 
         // Depositar feromônio de todas as formigas (atomic dentro de deposit_pheromone)
@@ -368,6 +403,7 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
     free_colony(colony);
     delete[] pheromone;
     delete[] visibility;
+    delete[] select_prob;
     if (distances != nullptr) {
         delete[] distances;
     }

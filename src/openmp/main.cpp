@@ -12,7 +12,7 @@
 static void print_usage(const char* prog) {
     std::cerr << "Uso: " << prog
               << " <dataset_path> <coluna_alvo>"
-              << " [--ants K] [--iter N] [--evap R] [--Q V] [--eval-top-k K]\n\n"
+              << " [--ants K] [--iter N] [--evap R] [--Q V] [--alpha A] [--beta B] [--eval-top-k K]\n\n"
               << "Exemplos:\n"
               << "  " << prog << " data/baseline/heart_failure.csv DEATH_EVENT\n"
               << "  " << prog << " data/baseline/heart_failure.csv DEATH_EVENT --ants 64 --iter 100\n"
@@ -35,6 +35,8 @@ int main(int argc, char* argv[]) {
     int    max_iterations   = 100;
     double evaporation_rate = 0.1;
     int    Q                = 1;
+    double alpha            = 1.0;   // peso do feromônio τ^α na seleção
+    double beta             = 1.0;   // peso da visibilidade η^β na seleção
     int    eval_top_k_explicit = 0;  // 0 = não especificado (auto-detectar)
 
     // Parse de argumentos opcionais (--flag valor, aos pares)
@@ -47,6 +49,10 @@ int main(int argc, char* argv[]) {
             evaporation_rate = std::atof(argv[i + 1]);
         } else if (std::strcmp(argv[i], "--Q") == 0) {
             Q = std::atoi(argv[i + 1]);
+        } else if (std::strcmp(argv[i], "--alpha") == 0) {
+            alpha = std::atof(argv[i + 1]);
+        } else if (std::strcmp(argv[i], "--beta") == 0) {
+            beta = std::atof(argv[i + 1]);
         } else if (std::strcmp(argv[i], "--eval-top-k") == 0) {
             eval_top_k_explicit = std::atoi(argv[i + 1]);
         } else {
@@ -81,7 +87,9 @@ int main(int argc, char* argv[]) {
     std::cout << "Parametros ACO:    ants=" << num_ants
               << ", iter=" << max_iterations
               << ", evap=" << evaporation_rate
-              << ", Q=" << Q << "\n\n";
+              << ", Q=" << Q
+              << ", alpha=" << alpha
+              << ", beta=" << beta << "\n\n";
 
     // ===== Executar ACO =====
     ACOConfig config{};
@@ -89,6 +97,8 @@ int main(int argc, char* argv[]) {
     config.max_iter = static_cast<size_t>(max_iterations);
     config.rho      = evaporation_rate;
     config.Q        = Q;
+    config.alpha    = alpha;
+    config.beta     = beta;
     config.patience = 10;  // default
 
     // Auto-detectar eval_top_k baseado em N (se não especificado)
