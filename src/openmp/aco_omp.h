@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-// Configuração do algoritmo ACO
+// Configuração do algoritmo ACO (versão OpenMP)
 struct ACOConfig {
     size_t K;           // formigas (default 128)
     size_t max_iter;    // iterações (default 100)
@@ -26,7 +26,7 @@ struct ACOResult {
     double  time_seconds;   // tempo total
 };
 
-// Função principal: executa o algoritmo ACO
+// Função principal: executa o algoritmo ACO paralelizado com OpenMP
 // X: features [N*F] row-major
 // Y: labels [N]
 // N: número de instâncias
