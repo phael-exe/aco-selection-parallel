@@ -13,77 +13,36 @@
         }                                                                   \
     } while (0)
 
-struct TransferTiming {
-    float h2d_ms;
-    float d2h_ms;
-};
-
 struct GpuBuffers {
-    double* d_X;          // [N * F] features
-    double* d_dist;       // [N * N] distâncias (NULL se on-the-fly)
-    double* d_vis;        // [N * N] visibilidades (NULL se on-the-fly)
-    double* d_pheromone;  // [N] vetor de feromônio 1D
-    int*    d_colony;     // [K * N] colônia (K formigas × N instâncias)
-    int     N;
-    int     K;
-    int     F;
-    bool    onthefly;     // true se N > 10000
+    double* d_X;             // [N * F] features (sem coluna-alvo)
+    double* d_pheromone;     // [N] vetor de feromônio
+    double* d_vis;           // [N] visibilidade 1D (η[i] = 1/(1+avg_dist[i]))
+    double* d_select_prob;   // [N] prob. de seleção (τ^α·η^β/max), atualizado a cada iter na CPU
+    double* d_deposit;       // [N] acumulador de depósito de feromônio
+    int*    d_colony;        // [K * N] colônia (K formigas × N instâncias)
+    int*    d_selected_count;// [K] contagem de instâncias selecionadas por formiga
+    int     N, K, F;
 };
 
-inline GpuBuffers alloc_gpu(int N, int K, int F, bool onthefly) {
+inline GpuBuffers alloc_gpu(int N, int K, int F) {
     GpuBuffers buf;
-    buf.N = N; buf.K = K; buf.F = F; buf.onthefly = onthefly;
-    CUDA_CHECK(cudaMalloc(&buf.d_X,         (size_t)N * F * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&buf.d_pheromone, (size_t)N     * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&buf.d_colony,    (size_t)K * N * sizeof(int)));
-    if (!onthefly) {
-        CUDA_CHECK(cudaMalloc(&buf.d_dist, (size_t)N * N * sizeof(double)));
-        CUDA_CHECK(cudaMalloc(&buf.d_vis,  (size_t)N * N * sizeof(double)));
-    } else {
-        buf.d_dist = nullptr;
-        buf.d_vis  = nullptr;
-    }
+    buf.N = N; buf.K = K; buf.F = F;
+    CUDA_CHECK(cudaMalloc(&buf.d_X,              (size_t)N * F * sizeof(double)));
+    CUDA_CHECK(cudaMalloc(&buf.d_pheromone,      (size_t)N     * sizeof(double)));
+    CUDA_CHECK(cudaMalloc(&buf.d_vis,            (size_t)N     * sizeof(double)));
+    CUDA_CHECK(cudaMalloc(&buf.d_select_prob,    (size_t)N     * sizeof(double)));
+    CUDA_CHECK(cudaMalloc(&buf.d_deposit,        (size_t)N     * sizeof(double)));
+    CUDA_CHECK(cudaMalloc(&buf.d_colony,         (size_t)K * N * sizeof(int)));
+    CUDA_CHECK(cudaMalloc(&buf.d_selected_count, (size_t)K     * sizeof(int)));
     return buf;
 }
 
 inline void free_gpu(GpuBuffers& buf) {
     CUDA_CHECK(cudaFree(buf.d_X));
     CUDA_CHECK(cudaFree(buf.d_pheromone));
+    CUDA_CHECK(cudaFree(buf.d_vis));
+    CUDA_CHECK(cudaFree(buf.d_select_prob));
+    CUDA_CHECK(cudaFree(buf.d_deposit));
     CUDA_CHECK(cudaFree(buf.d_colony));
-    if (buf.d_dist) CUDA_CHECK(cudaFree(buf.d_dist));
-    if (buf.d_vis)  CUDA_CHECK(cudaFree(buf.d_vis));
-}
-
-inline TransferTiming upload_X(GpuBuffers& buf, const double* h_X) {
-    cudaEvent_t t0, t1;
-    CUDA_CHECK(cudaEventCreate(&t0));
-    CUDA_CHECK(cudaEventCreate(&t1));
-    CUDA_CHECK(cudaEventRecord(t0));
-    CUDA_CHECK(cudaMemcpy(buf.d_X, h_X,
-                          (size_t)buf.N * buf.F * sizeof(double),
-                          cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaEventRecord(t1));
-    CUDA_CHECK(cudaEventSynchronize(t1));
-    TransferTiming t; t.d2h_ms = 0.0f;
-    CUDA_CHECK(cudaEventElapsedTime(&t.h2d_ms, t0, t1));
-    CUDA_CHECK(cudaEventDestroy(t0));
-    CUDA_CHECK(cudaEventDestroy(t1));
-    return t;
-}
-
-inline float download_colony(const GpuBuffers& buf, int* h_colony) {
-    cudaEvent_t t0, t1;
-    CUDA_CHECK(cudaEventCreate(&t0));
-    CUDA_CHECK(cudaEventCreate(&t1));
-    CUDA_CHECK(cudaEventRecord(t0));
-    CUDA_CHECK(cudaMemcpy(h_colony, buf.d_colony,
-                          (size_t)buf.K * buf.N * sizeof(int),
-                          cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaEventRecord(t1));
-    CUDA_CHECK(cudaEventSynchronize(t1));
-    float ms;
-    CUDA_CHECK(cudaEventElapsedTime(&ms, t0, t1));
-    CUDA_CHECK(cudaEventDestroy(t0));
-    CUDA_CHECK(cudaEventDestroy(t1));
-    return ms;
+    CUDA_CHECK(cudaFree(buf.d_selected_count));
 }

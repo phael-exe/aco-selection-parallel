@@ -18,37 +18,31 @@ __device__ inline double atomicAddDouble(double* addr, double val) {
 #endif
 }
 
-// T12: Distância euclidiana par-a-par (apenas para N <= 10k)
-__global__ void pairwise_distance_kernel(
-    const double* X, double* dist, int N, int F);
+// Distância média de cada instância às demais: avg_dist[i] = mean_{j≠i} euclidean(i,j)
+// Usado uma vez para computar visibilidade 1D
+__global__ void avg_distance_kernel(const double* X, double* avg_dist, int N, int F);
 
-// T13: Visibilidade eta[i][j] = 1/dist[i][j]
-__global__ void visibility_kernel(
-    const double* dist, double* vis, int N);
-
-// T14+T15: Construção de soluções (1 thread = 1 par formiga×instância)
-// K*N threads: thread tid → ant=tid/N, inst=tid%N
-// Decisão independente: P(select inst) = pheromone[inst] ∈ [0,1]
+// Construção paralela: 1 thread por par (formiga, instância)
+// select_prob[N] é τ^α·η^β normalizado pelo máximo (precomputado na CPU a cada iteração)
+// selected_count[K]: contador atômico de quantas instâncias cada formiga selecionou
 __global__ void ant_construction_kernel(
-    const double* pheromone,
+    const double* select_prob,
     int*          colony,
-    double*       deposit,
+    int*          selected_count,
     curandState*  rng_states,
     int N, int K);
 
-// T16: Evaporação de feromônio tau[i] *= (1 - rho)
-__global__ void pheromone_evaporation_kernel(
-    double* pheromone, int N, double evap_rate);
+// Depósito: para cada (k,i) selecionado atomicamente acumula Q/selected_count[k] em deposit[i]
+__global__ void deposit_kernel(
+    const int*    colony,
+    const int*    selected_count,
+    double*       deposit,
+    int N, int K, double Q);
 
-// Aplica depósitos acumulados ao vetor de feromônio
-__global__ void apply_deposit_kernel(
-    double* pheromone, const double* deposit, int N, double Q);
+// Atualização de feromônio: tau = (tau + deposit) * (1-rho), clamp a tau_min
+// Ordem equivale a: depositar primeiro, depois evaporar (igual ao sequencial)
+__global__ void apply_pheromone_kernel(
+    double* pheromone, const double* deposit, int N, double rho);
 
-// T19: 1-NN paralelo para avaliação de qualidade
-__global__ void knn_1nn_kernel(
-    const double* X_train, const int* selected_mask,
-    const double* X_test,  int* predictions,
-    int N, int F, int N_test, int n_classes);
-
-// Inicialização do cuRAND state por thread
+// Inicialização dos estados cuRAND
 __global__ void init_curand_kernel(curandState* states, unsigned long long seed, int N);
