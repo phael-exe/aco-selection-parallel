@@ -61,6 +61,22 @@ make clean        # remove build/
 > CUDA e OpenMP são épicos separados. Enquanto `src/cuda/` e `src/openmp/`
 > estiverem vazios (ou `nvcc` não existir), esses targets são pulados sem erro.
 
+## Resultados
+
+### Redução de Instâncias (%)
+
+![Redução %](results/figs/fig6_reducao_pct.png)
+
+### Instâncias Absolutas Antes × Depois
+
+![Redução absoluta](results/figs/fig7_reducao_absoluta.png)
+
+### Speedup CUDA e OpenMP vs Sequencial
+
+![Speedup](results/figs/fig4_speedup_vs_n.png)
+
+> Relatório completo: [`results/EP04_CUDA_benchmark.md`](results/EP04_CUDA_benchmark.md)
+
 ## Referências
 
 - Magalhães, J.M.O. et al. *Avaliação de Desempenho e Escalabilidade do ACO em C++ e Python*. PUC Minas, 2024.
