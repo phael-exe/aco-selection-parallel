@@ -146,4 +146,34 @@ eliminaria o único round-trip D→H→D que resta e completaria o pipeline 100%
 
 ---
 
+## 7 · Redução de Instâncias
+
+O ACO seleciona um subconjunto compacto do dataset original para ser usado como treino do 1-NN.
+Os dois gráficos abaixo mostram o resultado dessa redução nos 9 datasets.
+
+### Porcentagem removida
+
+![Redução %](figs/fig6_reducao_pct.png)
+
+### Instâncias absolutas (antes × depois)
+
+![Redução absoluta](figs/fig7_reducao_absoluta.png)
+
+| Dataset | N original | Seq selecionadas | OMP selecionadas | CUDA selecionadas | Redução (CUDA) |
+|---------|----------:|----------------:|-----------------:|------------------:|:--------------:|
+| heart_failure  |   299 |  239 |  242 |  233 | ~22% |
+| haberman       |   306 |  251 |  257 |  256 | ~16% |
+| cirrhosis      |   418 |  338 |  332 |  332 | ~21% |
+| diabetes       |   768 |  618 |  614 |  607 | ~21% |
+| tic-tac-toe    |   958 |  883 |  895 |  897 |  ~6% |
+| yeast          |  1484 | 1388 | 1355 | 1385 |  ~7% |
+| vaccine        |  3152 | 2717 | 2733 | 2742 | ~13% |
+| Employee       |  4653 | 3655 | 3640 | 3697 | ~21% |
+| brain-stroke   |  4981 | 3754 | 3820 | 3805 | ~24% |
+
+> O ACO remove entre **6% e 25%** das instâncias mantendo F1-Score equivalente ao dataset completo.
+> As três implementações convergem para subconjuntos de tamanho similar — a paralelização afeta o tempo, não a qualidade da solução.
+
+---
+
 *Dados: `results/EP04_CUDA_benchmark_raw.csv` · Gráficos: `results/figs/`*
