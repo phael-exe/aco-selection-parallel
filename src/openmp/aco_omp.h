@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-// Configuração do algoritmo ACO
+// Configuração do algoritmo ACO (versão OpenMP)
 struct ACOConfig {
     size_t K;           // formigas (default 128)
     size_t max_iter;    // iterações (default 100)
@@ -11,8 +11,7 @@ struct ACOConfig {
     double alpha;       // peso do feromônio na seleção τ^α (default 1.0)
     double beta;        // peso da visibilidade na seleção η^β (default 1.0)
     size_t patience;    // early stopping (default 10)
-    size_t eval_top_k;   // quantas formigas avaliar por iteração com 1-NN (default: auto-detectado em main.cpp)
-    size_t eval_sample;  // instâncias amostradas para avaliação 1-NN (0 = todas)
+    size_t eval_top_k;  // quantas formigas avaliar por iteração com 1-NN (default: auto-detectado em main.cpp)
 };
 
 // Resultado do algoritmo ACO
@@ -27,7 +26,7 @@ struct ACOResult {
     double  time_seconds;   // tempo total
 };
 
-// Função principal: executa o algoritmo ACO
+// Função principal: executa o algoritmo ACO paralelizado com OpenMP
 // X: features [N*F] row-major
 // Y: labels [N]
 // N: número de instâncias

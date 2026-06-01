@@ -3,7 +3,11 @@
 #include <cstdlib>
 #include <chrono>
 #include "csv_reader.h"
-#include "aco.h"
+#include "aco_omp.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 static void print_usage(const char* prog) {
     std::cerr << "Uso: " << prog
@@ -12,7 +16,8 @@ static void print_usage(const char* prog) {
               << "Exemplos:\n"
               << "  " << prog << " data/baseline/heart_failure.csv DEATH_EVENT\n"
               << "  " << prog << " data/baseline/heart_failure.csv DEATH_EVENT --ants 64 --iter 100\n"
-              << "  " << prog << " data/cdc/cdc_diabetes.csv Diabetes_binary --evap 0.1 --Q 1 --eval-top-k 1\n";
+              << "  " << prog << " data/cdc/cdc_diabetes.csv Diabetes_binary --evap 0.1 --Q 1 --eval-top-k 1\n\n"
+              << "Threads: controle via variavel de ambiente OMP_NUM_THREADS (ex: OMP_NUM_THREADS=8 " << prog << " ...)\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -30,10 +35,9 @@ int main(int argc, char* argv[]) {
     int    max_iterations   = 100;
     double evaporation_rate = 0.1;
     int    Q                = 1;
-    double alpha                 = 1.0;   // peso do feromônio τ^α na seleção
-    double beta                  = 1.0;   // peso da visibilidade η^β na seleção
-    int    eval_top_k_explicit   = 0;  // 0 = não especificado (auto-detectar)
-    int    eval_sample_explicit  = -1;  // -1 = não especificado (auto-detectar)
+    double alpha            = 1.0;   // peso do feromônio τ^α na seleção
+    double beta             = 1.0;   // peso da visibilidade η^β na seleção
+    int    eval_top_k_explicit = 0;  // 0 = não especificado (auto-detectar)
 
     // Parse de argumentos opcionais (--flag valor, aos pares)
     for (int i = 3; i + 1 < argc; i += 2) {
@@ -51,8 +55,6 @@ int main(int argc, char* argv[]) {
             beta = std::atof(argv[i + 1]);
         } else if (std::strcmp(argv[i], "--eval-top-k") == 0) {
             eval_top_k_explicit = std::atoi(argv[i + 1]);
-        } else if (std::strcmp(argv[i], "--eval-sample") == 0) {
-            eval_sample_explicit = std::atoi(argv[i + 1]);
         } else {
             std::cerr << "Aviso: argumento desconhecido '" << argv[i] << "' ignorado\n";
         }
@@ -72,9 +74,16 @@ int main(int argc, char* argv[]) {
     double elapsed_ms =
         std::chrono::duration<double, std::milli>(t1 - t0).count();
 
+    // Nº de threads OpenMP em uso (controlado por OMP_NUM_THREADS)
+    int num_threads = 1;
+#ifdef _OPENMP
+    num_threads = omp_get_max_threads();
+#endif
+
     std::cout << "Dataset carregado: " << ds.N << " instancias, "
               << ds.F << " features\n";
     std::cout << "Tempo de leitura:  " << elapsed_ms << " ms\n";
+    std::cout << "Threads OpenMP:    " << num_threads << "\n";
     std::cout << "Parametros ACO:    ants=" << num_ants
               << ", iter=" << max_iterations
               << ", evap=" << evaporation_rate
@@ -91,7 +100,7 @@ int main(int argc, char* argv[]) {
     config.alpha    = alpha;
     config.beta     = beta;
     config.patience = 10;  // default
-    
+
     // Auto-detectar eval_top_k baseado em N (se não especificado)
     if (eval_top_k_explicit == 0) {
         if (ds.N <= 1000) {
@@ -105,13 +114,6 @@ int main(int argc, char* argv[]) {
         config.eval_top_k = static_cast<size_t>(eval_top_k_explicit);
     }
 
-    // Auto-detectar eval_sample baseado em N (se não especificado)
-    if (eval_sample_explicit == -1) {
-        config.eval_sample = (ds.N > 10000) ? 5000 : 0;
-    } else {
-        config.eval_sample = static_cast<size_t>(eval_sample_explicit);
-    }
-
     auto t_aco_0 = std::chrono::high_resolution_clock::now();
     ACOResult result = run_aco(ds.X, ds.Y, ds.N, ds.F, config);
     auto t_aco_1 = std::chrono::high_resolution_clock::now();
@@ -119,7 +121,7 @@ int main(int argc, char* argv[]) {
     double aco_time_ms = std::chrono::duration<double, std::milli>(t_aco_1 - t_aco_0).count();
 
     // Exibir resultado
-    std::cout << "\n=== Resultado ACO ===\n";
+    std::cout << "\n=== Resultado ACO (OpenMP) ===\n";
     std::cout << "Melhor solucao: " << result.selected << "/" << ds.N
               << " instancias (reducao ~" << (100.0 * (ds.N - result.selected) / ds.N) << "%)\n";
     std::cout << "Acuracia: " << result.accuracy << "\n";
@@ -133,16 +135,12 @@ int main(int argc, char* argv[]) {
         std::cout << "\n";
     }
     std::cout << "Tempo ACO: " << aco_time_ms << " ms\n";
+    std::cout << "Threads: " << num_threads << "\n";
     std::cout << "Eval strategy: top-" << config.eval_top_k << " formigas/iteracao (";
     if (eval_top_k_explicit == 0) {
         std::cout << "auto-detectado para N=" << ds.N << ")\n";
     } else {
         std::cout << "explicitamente configurado)\n";
-    }
-    if (config.eval_sample > 0) {
-        std::cout << "Eval sample: " << config.eval_sample << "/" << ds.N
-                  << " instancias por avaliacao (";
-        std::cout << (eval_sample_explicit == -1 ? "auto-detectado" : "explicitamente configurado") << ")\n";
     }
 
     free_dataset(&ds);
