@@ -115,19 +115,20 @@ static MulticlassMetrics compute_multiclass_metrics(
 
 QualityMetrics evaluate_solution(
     const int* solution,
-    const double* X, const double* Y, size_t N, size_t F) {
-    
+    const double* X, const double* Y, size_t N, size_t F,
+    size_t eval_sample) {
+
     QualityMetrics result{};
-    
+
     // Contar instâncias selecionadas
     size_t selected_count = 0;
     for (size_t i = 0; i < N; ++i) {
         if (solution[i] == 1) selected_count++;
     }
-    
+
     result.selected_count = selected_count;
     result.reduction_rate = 1.0 - (static_cast<double>(selected_count) / N);
-    
+
     // Se nenhuma instância selecionada, retorna métrica zero
     if (selected_count == 0) {
         result.accuracy = 0.0;
@@ -136,11 +137,11 @@ QualityMetrics evaluate_solution(
         result.f1_score = 0.0;
         return result;
     }
-    
+
     // Alocar X_train e Y_train
     double* X_train = new double[selected_count * F];
     double* Y_train = new double[selected_count];
-    
+
     size_t train_idx = 0;
     for (size_t i = 0; i < N; ++i) {
         if (solution[i] == 1) {
@@ -151,44 +152,71 @@ QualityMetrics evaluate_solution(
             train_idx++;
         }
     }
-    
+
+    // Amostrar test set se eval_sample estiver ativo
+    const double* X_test = X;
+    const double* Y_test = Y;
+    size_t N_test = N;
+    double* X_sample = nullptr;
+    double* Y_sample = nullptr;
+
+    if (eval_sample > 0 && N > eval_sample) {
+        X_sample = new double[eval_sample * F];
+        Y_sample = new double[eval_sample];
+
+        // Reservatório de amostragem aleatória (reservoir sampling)
+        std::vector<size_t> indices(eval_sample);
+        for (size_t i = 0; i < eval_sample; ++i) indices[i] = i;
+        for (size_t i = eval_sample; i < N; ++i) {
+            size_t j = rand() % (i + 1);
+            if (j < eval_sample) indices[j] = i;
+        }
+
+        for (size_t s = 0; s < eval_sample; ++s) {
+            size_t src = indices[s];
+            for (size_t f = 0; f < F; ++f)
+                X_sample[s * F + f] = X[src * F + f];
+            Y_sample[s] = Y[src];
+        }
+
+        X_test = X_sample;
+        Y_test = Y_sample;
+        N_test = eval_sample;
+    }
+
     // Executar 1-NN
-    double* Y_pred = knn_1nn_predict(X_train, Y_train, selected_count, X, N, F);
+    double* Y_pred = knn_1nn_predict(X_train, Y_train, selected_count, X_test, N_test, F);
     
     // Calcular métricas
     bool binary = is_binary_classification(Y, N);
-    
+
     if (binary) {
-        // Classificação binária
-        // Detectar qual é a classe positiva (assumir 1.0 ou maior valor único)
         std::set<double> classes_set;
-        for (size_t i = 0; i < N; ++i) {
-            classes_set.insert(Y[i]);
-        }
+        for (size_t i = 0; i < N; ++i) classes_set.insert(Y[i]);
         std::vector<double> classes(classes_set.begin(), classes_set.end());
         double positive_class = (classes.size() == 2) ? classes[1] : 1.0;
-        
-        BinaryMetrics bm = compute_binary_metrics(Y_pred, Y, N, positive_class);
-        
-        result.accuracy = static_cast<double>(bm.tp + bm.tn) / N;
+
+        BinaryMetrics bm = compute_binary_metrics(Y_pred, Y_test, N_test, positive_class);
+
+        result.accuracy  = static_cast<double>(bm.tp + bm.tn) / N_test;
         result.precision = (bm.tp + bm.fp > 0) ? static_cast<double>(bm.tp) / (bm.tp + bm.fp) : 0.0;
-        result.recall = (bm.tp + bm.fn > 0) ? static_cast<double>(bm.tp) / (bm.tp + bm.fn) : 0.0;
-        result.f1_score = (result.precision + result.recall > 0)
+        result.recall    = (bm.tp + bm.fn > 0) ? static_cast<double>(bm.tp) / (bm.tp + bm.fn) : 0.0;
+        result.f1_score  = (result.precision + result.recall > 0)
             ? 2.0 * (result.precision * result.recall) / (result.precision + result.recall)
             : 0.0;
     } else {
-        // Classificação multiclasse (macro-average)
-        MulticlassMetrics mm = compute_multiclass_metrics(Y_pred, Y, N);
-        result.accuracy = mm.accuracy;
+        MulticlassMetrics mm = compute_multiclass_metrics(Y_pred, Y_test, N_test);
+        result.accuracy  = mm.accuracy;
         result.precision = mm.precision;
-        result.recall = mm.recall;
-        result.f1_score = mm.f1_score;
+        result.recall    = mm.recall;
+        result.f1_score  = mm.f1_score;
     }
-    
-    // Liberar memória
+
     delete[] X_train;
     delete[] Y_train;
     delete[] Y_pred;
-    
+    delete[] X_sample;
+    delete[] Y_sample;
+
     return result;
 }

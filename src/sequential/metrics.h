@@ -27,7 +27,9 @@ struct QualityMetrics {
 // 2. Treina 1-NN com X_train, Y_train
 // 3. Avalia 1-NN no dataset completo (X, Y)
 // 4. Calcula acurácia, P, R, F1 (binário ou multiclasse auto-detectado)
+// eval_sample: se > 0 e N > eval_sample, avalia apenas uma amostra aleatória do test set
 QualityMetrics evaluate_solution(
     const int* solution,
-    const double* X, const double* Y, size_t N, size_t F
+    const double* X, const double* Y, size_t N, size_t F,
+    size_t eval_sample = 0
 );

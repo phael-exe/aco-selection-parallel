@@ -148,34 +148,22 @@ static void init_pheromone(double* pheromone, size_t N, double initial_value) {
 }
 
 static void deposit_pheromone(double* pheromone, size_t N, const int* ant_solution, double Q) {
-    // Contar instâncias selecionadas (tour_length)
     size_t tour_length = 0;
     for (size_t i = 0; i < N; ++i) {
-        if (ant_solution[i] == 1) {
-            tour_length++;
-        }
+        if (ant_solution[i] == 1) tour_length++;
     }
-    
-    // Se nenhuma selecionada, não deposita
-    if (tour_length == 0) {
-        return;
-    }
-    
-    // Depositar feromônio nas selecionadas
+    if (tour_length == 0) return;
+
     double deposit = Q / tour_length;
     for (size_t i = 0; i < N; ++i) {
-        if (ant_solution[i] == 1) {
-            pheromone[i] += deposit;
-        }
+        if (ant_solution[i] == 1) pheromone[i] += deposit;
     }
 }
 
 static void evaporate_pheromone(double* pheromone, size_t N, double rho) {
     for (size_t i = 0; i < N; ++i) {
         pheromone[i] *= (1.0 - rho);
-        if (pheromone[i] < PHEROMONE_MIN) {
-            pheromone[i] = PHEROMONE_MIN;
-        }
+        if (pheromone[i] < PHEROMONE_MIN) pheromone[i] = PHEROMONE_MIN;
     }
 }
 
@@ -267,6 +255,7 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
     
     // ===== Loop Principal =====
     for (size_t iter = 0; iter < config.max_iter; ++iter) {
+        auto iter_t0 = std::chrono::high_resolution_clock::now();
         // Resetar colônia para esta iteração
         std::fill(colony, colony + config.K * N, -1);
         
@@ -329,7 +318,7 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         for (size_t i = 0; i < eval_count; ++i) {
             size_t k = ant_scores[i].first;
             int* ant_solution = colony + k * N;
-            QualityMetrics metrics = evaluate_solution(ant_solution, X, Y, N, F);
+            QualityMetrics metrics = evaluate_solution(ant_solution, X, Y, N, F, config.eval_sample);
             
             if (metrics.f1_score > best_f1_this_iter) {
                 best_f1_this_iter = metrics.f1_score;
@@ -359,8 +348,10 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         }
         
         // Logging
-        fprintf(stderr, "Iter %zu: F1=%.4f, Acc=%.4f, Redução=%.1f%%, Ants avaliadas=%zu\n",
-            iter + 1, current_fitness, result.accuracy, best_metrics_this_iter.reduction_rate * 100.0, eval_count);
+        auto iter_t1 = std::chrono::high_resolution_clock::now();
+        double iter_ms = std::chrono::duration<double, std::milli>(iter_t1 - iter_t0).count();
+        fprintf(stderr, "Iter %zu: F1=%.4f, Acc=%.4f, Redução=%.1f%%, Ants avaliadas=%zu, Tempo=%.0f ms\n",
+            iter + 1, current_fitness, result.accuracy, best_metrics_this_iter.reduction_rate * 100.0, eval_count, iter_ms);
         
         // Early stopping
         if (no_improve_count >= config.patience) {

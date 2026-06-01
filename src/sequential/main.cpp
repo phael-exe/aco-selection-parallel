@@ -30,9 +30,10 @@ int main(int argc, char* argv[]) {
     int    max_iterations   = 100;
     double evaporation_rate = 0.1;
     int    Q                = 1;
-    double alpha            = 1.0;   // peso do feromônio τ^α na seleção
-    double beta             = 1.0;   // peso da visibilidade η^β na seleção
-    int    eval_top_k_explicit = 0;  // 0 = não especificado (auto-detectar)
+    double alpha                 = 1.0;   // peso do feromônio τ^α na seleção
+    double beta                  = 1.0;   // peso da visibilidade η^β na seleção
+    int    eval_top_k_explicit   = 0;  // 0 = não especificado (auto-detectar)
+    int    eval_sample_explicit  = -1;  // -1 = não especificado (auto-detectar)
 
     // Parse de argumentos opcionais (--flag valor, aos pares)
     for (int i = 3; i + 1 < argc; i += 2) {
@@ -50,6 +51,8 @@ int main(int argc, char* argv[]) {
             beta = std::atof(argv[i + 1]);
         } else if (std::strcmp(argv[i], "--eval-top-k") == 0) {
             eval_top_k_explicit = std::atoi(argv[i + 1]);
+        } else if (std::strcmp(argv[i], "--eval-sample") == 0) {
+            eval_sample_explicit = std::atoi(argv[i + 1]);
         } else {
             std::cerr << "Aviso: argumento desconhecido '" << argv[i] << "' ignorado\n";
         }
@@ -102,6 +105,13 @@ int main(int argc, char* argv[]) {
         config.eval_top_k = static_cast<size_t>(eval_top_k_explicit);
     }
 
+    // Auto-detectar eval_sample baseado em N (se não especificado)
+    if (eval_sample_explicit == -1) {
+        config.eval_sample = (ds.N > 10000) ? 5000 : 0;
+    } else {
+        config.eval_sample = static_cast<size_t>(eval_sample_explicit);
+    }
+
     auto t_aco_0 = std::chrono::high_resolution_clock::now();
     ACOResult result = run_aco(ds.X, ds.Y, ds.N, ds.F, config);
     auto t_aco_1 = std::chrono::high_resolution_clock::now();
@@ -128,6 +138,11 @@ int main(int argc, char* argv[]) {
         std::cout << "auto-detectado para N=" << ds.N << ")\n";
     } else {
         std::cout << "explicitamente configurado)\n";
+    }
+    if (config.eval_sample > 0) {
+        std::cout << "Eval sample: " << config.eval_sample << "/" << ds.N
+                  << " instancias por avaliacao (";
+        std::cout << (eval_sample_explicit == -1 ? "auto-detectado" : "explicitamente configurado") << ")\n";
     }
 
     free_dataset(&ds);

@@ -11,7 +11,8 @@ struct ACOConfig {
     double alpha;       // peso do feromônio na seleção τ^α (default 1.0)
     double beta;        // peso da visibilidade na seleção η^β (default 1.0)
     size_t patience;    // early stopping (default 10)
-    size_t eval_top_k;  // quantas formigas avaliar por iteração com 1-NN (default: auto-detectado em main.cpp)
+    size_t eval_top_k;   // quantas formigas avaliar por iteração com 1-NN (default: auto-detectado em main.cpp)
+    size_t eval_sample;  // instâncias amostradas para avaliação 1-NN (0 = todas)
 };
 
 // Resultado do algoritmo ACO
