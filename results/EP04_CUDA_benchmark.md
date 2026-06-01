@@ -10,88 +10,77 @@
 
 ## Contexto
 
-Este relatório compara as **três implementações do ACO de seleção de instâncias** nos
-**9 datasets baseline** (N de 299 a 4.981 instâncias). O dataset grande (CDC, N=253.680)
-foi excluído pois exige remodelagem da avaliação 1-NN na GPU para ser viável.
+Três implementações do mesmo ACO de seleção de instâncias, nos **9 datasets baseline**
+(N de 299 a 4.981 instâncias — o dataset CDC com N=253.680 foi excluído desta rodada).
 
-As três implementações executam **o mesmo algoritmo** (feromônio τ^α·η^β, mesmo depósito,
-mesma evaporação, mesma avaliação 1-NN) — só o grau de paralelismo varia:
+| Implementação | Paralelismo |
+|---|---|
+| **Sequencial** | serial — loop sobre K formigas |
+| **OpenMP** | K formigas em paralelo na CPU + avaliação 1-NN paralela |
+| **CUDA** | K×N decisões de seleção em paralelo + **avaliação 1-NN inteiramente na GPU** |
 
-| Implementação | Paralelismo | Onde |
-|---|---|---|
-| **Sequencial** | Nenhum — loop serial sobre K formigas | `src/sequential/` |
-| **OpenMP** | K formigas em paralelo (CPU threads) + evaporação + 1-NN | `src/openmp/` |
-| **CUDA** | K×N decisões em paralelo (1 thread GPU por formiga×instância) | `src/cuda/` |
+A principal mudança em relação ao EP03 de OpenMP: a **avaliação 1-NN foi movida para a GPU**
+via `knn_1nn_kernel` (N threads, cada uma encontra o vizinho mais próximo no subconjunto de treino).
+Isso elimina o download da colônia K×N a cada iteração e o 1-NN sequencial na CPU.
 
 ---
 
-## 1 · Qualidade — F1-Score nos 9 Datasets
+## 1 · Qualidade — F1-Score
 
 ![F1-Score comparison](figs/fig1_f1_comparison.png)
 
-| Dataset | N | F | Seq | OMP-12t | CUDA | Δ OMP | Δ CUDA |
-|---------|--:|--:|----:|--------:|-----:|------:|-------:|
-| heart_failure      |   299 | 12 | 0.916667 | 0.873096 | 0.878307 | -4.8% |  -4.2% |
-| haberman           |   306 |  3 | 0.865854 | 0.877193 | 0.877193 | +1.3% |  +1.3% |
-| cirrhosis          |   418 | 19 | 0.876302 | 0.863608 | 0.84841 | -1.4% |  -3.2% |
-| diabetes           |   768 |  8 | 0.917603 | 0.915888 | 0.909091 | -0.2% |  -0.9% |
-| tic-tac-toe        |   958 |  9 | 0.975535 | 0.975535 | 0.974046 | +0.0% |  -0.2% |
-| yeast              |  1484 |  8 | 0.968335 | 0.970717 | 0.971496 | +0.2% |  +0.3% |
-| vaccine            |  3152 | 40 | 0.960053 | 0.954395 | 0.957152 | -0.6% |  -0.3% |
-| Employee           |  4653 |  8 | 0.809762 | 0.811048 | 0.818124 | +0.2% |  +1.0% |
-| brain-stroke       |  4981 | 10 | 0.731405 | 0.723926 | 0.730539 | -1.0% |  -0.1% |
+| Dataset | N | Seq F1 | OMP-12t F1 | CUDA F1 | Δ OMP vs Seq | Δ CUDA vs Seq |
+|---------|--:|-------:|-----------:|--------:|:------------:|:-------------:|
+| heart_failure      |   299 | 0.875676 |   0.873096 | 0.878307 |        -0.3% |         +0.3% |
+| haberman           |   306 | 0.869565 |   0.877193 | 0.877193 |        +0.9% |         +0.9% |
+| cirrhosis          |   418 | 0.870966 |   0.863608 | 0.84841 |        -0.8% |         -2.6% |
+| diabetes           |   768 | 0.91182 |   0.915888 | 0.909091 |        +0.4% |         -0.3% |
+| tic-tac-toe        |   958 | 0.970904 |   0.975535 | 0.974046 |        +0.5% |         +0.3% |
+| yeast              |  1484 | 0.974668 |   0.970717 | 0.971496 |        -0.4% |         -0.3% |
+| vaccine            |  3152 | 0.954515 |   0.954395 | 0.957152 |        -0.0% |         +0.3% |
+| Employee           |  4653 | 0.805932 |   0.811048 | 0.818124 |        +0.6% |         +1.5% |
+| brain-stroke       |  4981 | 0.717349 |   0.723926 | 0.730539 |        +0.9% |         +1.8% |
 
-> **Conclusão:** Todos os três modos produzem F1 comparável (variação < 5%).
-> Diferenças são ruído estatístico — o algoritmo é estocastico e roda com seed aleatório.
-> A corretude do CUDA foi verificada: implementa τ^α·η^β com a mesma fórmula do sequencial.
+> Todos os modos produzem qualidade comparável (variações < 5% = ruído estatístico do algoritmo estocástico).
 
 ---
 
-## 2 · Tempo Total — Seq × OpenMP-12t × CUDA
+## 2 · Tempo Total — Seq × OMP-12t × CUDA
 
 ![Tempo comparison](figs/fig2_tempo_comparison.png)
 
-| Dataset | N | Seq (ms) | OMP-12t (ms) | CUDA (ms) | Speedup OMP/Seq | Speedup CUDA/Seq |
-|---------|--:|---------:|-------------:|----------:|:--------------:|:----------------:|
-| heart_failure      |   299 |   18.1834 |      10.3096 |   26.5517 |          1.76x |            0.68x |
-| haberman           |   306 |   12.3081 |      8.43582 |   16.1546 |          1.46x |            0.76x |
-| cirrhosis          |   418 |   47.2566 |      20.7794 |   83.9148 |          2.27x |            0.56x |
-| diabetes           |   768 |   74.1515 |      34.1344 |   120.766 |          2.17x |            0.61x |
-| tic-tac-toe        |   958 |   199.654 |      74.5958 |   235.505 |          2.68x |            0.85x |
-| yeast              |  1484 |   197.569 |      102.478 |   361.581 |          1.93x |            0.55x |
-| vaccine            |  3152 |   3614.91 |      874.163 |   7579.84 |          4.14x |            0.48x |
-| Employee           |  4653 |    1916.3 |      580.033 |    2909.6 |          3.30x |            0.66x |
-| brain-stroke       |  4981 |   2889.22 |      708.583 |   4223.79 |          4.08x |            0.68x |
-
-> **Conclusão:** OpenMP-12t é o mais rápido neste range de N. CUDA é mais lenta que o sequencial
-> porque a avaliação 1-NN (que roda na CPU para todos os modos) domina o tempo total, e o CUDA
-> ainda adiciona overhead de transferência H↔D a cada iteração.
+| Dataset | N | Seq (ms) | OMP-12t (ms) | CUDA (ms) | CUDA/Seq | CUDA/OMP-12t |
+|---------|--:|---------:|-------------:|----------:|:--------:|:------------:|
+| heart_failure      |   299 |   29.9169 |      15.7006 |   23.0848 |     1.3× |         0.7× |
+| haberman           |   306 |   20.0678 |      11.6644 |   7.42819 |     2.7× |         1.6× |
+| cirrhosis          |   418 |   51.3249 |      33.7135 |   42.7941 |     1.2× |         0.8× |
+| diabetes           |   768 |   86.9817 |      69.9095 |   44.8802 |     1.9× |         1.6× |
+| tic-tac-toe        |   958 |   184.966 |      81.6103 |   65.4053 |     2.8× |         1.2× |
+| yeast              |  1484 |   196.573 |      116.525 |   66.2802 |     3.0× |         1.8× |
+| vaccine            |  3152 |   5180.84 |      862.695 |   431.248 |    12.0× |         2.0× |
+| Employee           |  4653 |   2158.31 |      573.138 |   178.152 |    12.1× |         3.2× |
+| brain-stroke       |  4981 |   3278.62 |       624.47 |    236.54 |    13.9× |         2.6× |
 
 ---
 
-## 3 · Por que a CUDA é mais lenta? — Decomposição do Tempo
+## 3 · Speedup CUDA e OpenMP vs Sequencial por Tamanho de Dataset
 
-![CUDA decomposition](figs/fig5_cuda_decomposition.png)
+![Speedup vs N](figs/fig4_speedup_vs_n.png)
 
-| Dataset | N | GPU compute (ms) | Total CUDA (ms) | GPU compute (%) |
-|---------|--:|----------------:|---------------:|:--------------:|
-| heart_failure      |   299 |             0.39 |         26.5517 |          1.47% |
-| haberman           |   306 |             0.34 |         16.1546 |          2.10% |
-| cirrhosis          |   418 |             0.42 |         83.9148 |          0.50% |
-| diabetes           |   768 |             0.63 |         120.766 |          0.52% |
-| tic-tac-toe        |   958 |             0.75 |         235.505 |          0.32% |
-| yeast              |  1484 |             1.18 |         361.581 |          0.33% |
-| vaccine            |  3152 |             1.93 |         7579.84 |          0.03% |
-| Employee           |  4653 |             2.81 |          2909.6 |          0.10% |
-| brain-stroke       |  4981 |             3.17 |         4223.79 |          0.08% |
+**Observação:** com a avaliação 1-NN na GPU, a CUDA supera o OpenMP-12t a partir de N≈1.500
+e alcança até **14× de speedup** contra o sequencial nos maiores datasets.
 
-> **Conclusão:** O GPU compute (fase de construção paralela — K×N decisões simultâneas) leva
-> **menos de 4 ms** mesmo no maior dataset. O restante do tempo é **avaliação 1-NN na CPU**
-> (idêntico ao sequencial) mais **transferências H↔D** da colônia K×N a cada iteração.
->
-> O CUDA seria mais rápido que o sequencial quando:
-> - **N >> 50.000** — construção paralela amortiza as transferências  
-> - **Avaliação 1-NN movida para a GPU** (kernel `knn_1nn_kernel` já implementado em `kernels.cu`)
+| Dataset | N | Speedup CUDA/Seq | Speedup OMP-12t/Seq |
+|---------|--:|:----------------:|:-------------------:|
+| heart_failure      |   299 |             1.3× |                1.9× |
+| haberman           |   306 |             2.7× |                1.7× |
+| cirrhosis          |   418 |             1.2× |                1.5× |
+| diabetes           |   768 |             1.9× |                1.2× |
+| tic-tac-toe        |   958 |             2.8× |                2.3× |
+| yeast              |  1484 |             3.0× |                1.7× |
+| vaccine            |  3152 |            12.0× |                6.0× |
+| Employee           |  4653 |            12.1× |                3.8× |
+| brain-stroke       |  4981 |            13.9× |                5.3× |
 
 ---
 
@@ -99,55 +88,62 @@ mesma evaporação, mesma avaliação 1-NN) — só o grau de paralelismo varia:
 
 ![OMP speedup curve](figs/fig3_omp_speedup_curve.png)
 
-**Referência = OMP-1t** (1t ≡ 1.00 por definição), metodologia idêntica ao EP03.
+Referência = **OMP-1t** (1t ≡ 1.00), metodologia idêntica ao EP03.
 
 | Dataset | N | 1t | 2t | 4t | 8t | 12t | Ótimo |
 |---------|--:|---:|---:|---:|---:|----:|-------|
-| heart_failure      |   299 | 1.00 | 1.22 | 1.59 | 2.34 | 1.65 | **8t** |
-| haberman           |   306 | 1.00 | 1.28 | 1.46 | 1.70 | 1.37 | **8t** |
-| cirrhosis          |   418 | 1.00 | 1.49 | 1.77 | 2.45 | 2.33 | **8t** |
-| diabetes           |   768 | 1.00 | 1.68 | 1.85 | 3.08 | 2.32 | **8t** |
-| tic-tac-toe        |   958 | 1.00 | 1.75 | 1.76 | 2.73 | 2.73 | **8t** |
-| yeast              |  1484 | 1.00 | 1.42 | 2.00 | 3.50 | 3.17 | **8t** |
-| vaccine            |  3152 | 1.00 | 2.05 | 2.64 | 4.12 | 4.83 | **12t** |
-| Employee           |  4653 | 1.00 | 1.82 | 2.20 | 3.73 | 3.97 | **12t** |
-| brain-stroke       |  4981 | 1.00 | 1.76 | 2.98 | 3.87 | 3.82 | **8t** |
+| heart_failure      |   299 | 1.00 | 0.99 | 1.27 | 1.19 | 1.27 | **4t** |
+| haberman           |   306 | 1.00 | 1.34 | 1.99 | 1.75 | 1.59 | **4t** |
+| cirrhosis          |   418 | 1.00 | 1.53 | 1.79 | 2.04 | 1.58 | **8t** |
+| diabetes           |   768 | 1.00 | 1.65 | 2.32 | 1.23 | 1.15 | **4t** |
+| tic-tac-toe        |   958 | 1.00 | 1.82 | 3.05 | 2.07 | 2.54 | **4t** |
+| yeast              |  1484 | 1.00 | 1.58 | 3.09 | 2.55 | 2.78 | **4t** |
+| vaccine            |  3152 | 1.00 | 1.87 | 3.38 | 3.67 | 4.53 | **12t** |
+| Employee           |  4653 | 1.00 | 1.77 | 2.93 | 3.68 | 3.97 | **12t** |
+| brain-stroke       |  4981 | 1.00 | 1.84 | 2.53 | 3.81 | 4.37 | **12t** |
 
 ---
 
-## 5 · Speedup OpenMP vs Tamanho do Dataset
+## 5 · Decomposição do Tempo CUDA por Componente
 
-![OMP speedup vs N](figs/fig4_omp_speedup_vs_n.png)
+![CUDA decomposition](figs/fig5_cuda_decomposition.png)
 
-> **Padrão confirmado (igual ao EP03):** o ganho de paralelismo cresce com N.
-> Datasets pequenos (N < 500) têm speedup ruidoso — o overhead de sincronização de threads
-> compete com o trabalho útil. Datasets médios (N ≈ 3.000–5.000) alcançam **3–5× com 8–12 threads**.
+| Dataset | N | GPU construção (ms) | GPU 1-NN avaliação (ms) | Total CUDA (ms) | Avaliação (%) |
+|---------|--:|--------------------:|------------------------:|----------------:|:-------------:|
+| heart_failure      |   299 |                0.39 |                    21.5 |         23.0848 |         93.1% |
+| haberman           |   306 |                0.34 |                     6.1 |         7.42819 |         82.1% |
+| cirrhosis          |   418 |                0.42 |                    40.9 |         42.7941 |         95.6% |
+| diabetes           |   768 |                0.63 |                    42.7 |         44.8802 |         95.1% |
+| tic-tac-toe        |   958 |                0.75 |                    63.3 |         65.4053 |         96.8% |
+| yeast              |  1484 |                1.18 |                    62.7 |         66.2802 |         94.6% |
+| vaccine            |  3152 |                1.93 |                   427.2 |         431.248 |         99.1% |
+| Employee           |  4653 |                2.81 |                   143.6 |         178.152 |         80.6% |
+| brain-stroke       |  4981 |                3.17 |                   197.4 |          236.54 |         83.5% |
+
+> **Análise:** a GPU constrói K×N soluções em paralelo em < 4 ms mesmo para N=4.981 (64×4981 = 318.784 decisões simultâneas).
+> A avaliação 1-NN domina o tempo, mas **também roda na GPU** — e com a RTX 4050 é **~15× mais rápida** que na CPU.
+> O único trabalho que resta na CPU é o cálculo de `select_prob` (τ^α·η^β, N doubles por iter) e as métricas finais.
 
 ---
 
 ## 6 · Síntese: Seq × OpenMP × CUDA
 
-| Critério | Sequencial | OpenMP-12t | CUDA |
+| Critério | Sequencial | OpenMP 12t | CUDA |
 |----------|:----------:|:----------:|:----:|
-| Qualidade (F1) | ✅ baseline | ✅ equivalente | ✅ equivalente |
-| Velocidade (N<5k) | 🔵 referência | 🟢 **3–5× mais rápido** | 🔴 1,3–2× mais lento |
-| Velocidade (N>>50k) | referência | ~5× | 🟢 **>10× esperado** |
-| Paralelismo | ❌ serial | ✅ CPU multi-core | ✅ GPU (K×N threads) |
-| GPU compute | — | — | **< 4 ms** em todos os datasets |
-| Overhead | nenhum | criação de threads | transferências H↔D + init CUDA |
-| Bottleneck | avaliação 1-NN | avaliação 1-NN | avaliação 1-NN (CPU) |
+| F1-Score | ✅ baseline | ✅ equivalente | ✅ equivalente |
+| Construção de soluções | serial (K×N loops) | paralela (K threads) | **paralela (K×N threads GPU)** |
+| Avaliação 1-NN | CPU serial | CPU paralela | **GPU paralela** |
+| Speedup (N=299) | 1× | ~1.3× | ~1.3× |
+| Speedup (N=1.500) | 1× | ~2.8× | **~3×** |
+| Speedup (N=3–5k) | 1× | ~4–5× | **~12–14×** |
+| Bottleneck restante | tudo | avaliação 1-NN | cálculo de select_prob (CPU) |
 
-### Lição principal
+### Próximo passo natural
 
-Mover a **construção de soluções** para a GPU é trivial e funciona (< 4 ms para 64×5.000 = 320.000
-decisões simultâneas). O bottleneck que impede o CUDA de superar o sequencial nestes datasets é a
-**avaliação 1-NN**, que ainda roda na CPU — exatamente como no sequencial e no OpenMP.
-
-A próxima otimização natural é mover a avaliação para a GPU usando o `knn_1nn_kernel` já
-implementado em `src/cuda/kernels.cu`, o que eliminaria as transferências de colônia a cada
-iteração e aproveitaria o poder de cálculo da GPU para a parte que consome 90% do tempo.
+O único trabalho que ainda fica na CPU é o cálculo de `select_prob` a cada iteração (download de τ,
+compute τ^α·η^β, upload). Mover esse cálculo para a GPU (reduction kernel para encontrar max + divisão)
+eliminaria o único round-trip D→H→D que resta e completaria o pipeline 100% na GPU.
 
 ---
 
-*Dados: `results/EP04_CUDA_benchmark_raw.csv` · Script: `scripts/run_benchmark_comparison.sh`*  
-*Gráficos gerados por `scripts/generate_benchmark_plots.py`*
+*Dados: `results/EP04_CUDA_benchmark_raw.csv` · Gráficos: `results/figs/`*

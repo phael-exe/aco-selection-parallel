@@ -110,12 +110,65 @@ static Dataset read_csv(const string& path, const string& target_col, string& er
 }
 
 // ---------------------------------------------------------------------------
-// Avaliação 1-NN na CPU (separa X e Y, não usa last-col como label)
+// Métricas a partir de predições GPU (int[N]) + labels CPU (double[N])
 // ---------------------------------------------------------------------------
 
 struct Metrics { double f1, acc, precision, recall, reduction; int selected; };
 
-static Metrics evaluate_1nn(
+// Detecta classes uma única vez por dataset
+static void detect_classes(const vector<double>& Y,
+                            vector<double>& classes, bool& binary) {
+    set<double> s(Y.begin(), Y.end());
+    classes.assign(s.begin(), s.end());  // sorted ascending
+    binary = (classes.size() == 2);
+}
+
+static Metrics compute_metrics(const vector<int>& preds,
+                                const vector<double>& Y, int N,
+                                int selected_count,
+                                const vector<double>& classes, bool binary)
+{
+    Metrics m{};
+    m.selected  = selected_count;
+    m.reduction = 1.0 - (double)selected_count / N;
+    if (selected_count == 0) return m;
+
+    int correct = 0;
+    for (int i = 0; i < N; ++i)
+        if ((double)preds[i] == Y[i]) correct++;
+    m.acc = (double)correct / N;
+
+    if (binary) {
+        double pos = classes[1];
+        int tp=0,fp=0,fn=0,tn=0;
+        for (int i=0;i<N;++i){
+            bool pp=((double)preds[i]==pos), tp_=(Y[i]==pos);
+            if(pp&&tp_)tp++; else if(pp)fp++; else if(tp_)fn++; else tn++;
+        }
+        m.precision=(tp+fp>0)?(double)tp/(tp+fp):0.0;
+        m.recall   =(tp+fn>0)?(double)tp/(tp+fn):0.0;
+        m.f1=(m.precision+m.recall>0)?2*m.precision*m.recall/(m.precision+m.recall):0.0;
+    } else {
+        double sp=0,sr=0,sf=0;
+        for(double cls:classes){
+            int tp=0,fp=0,fn=0;
+            for(int i=0;i<N;++i){
+                bool pp=((double)preds[i]==cls),tp_=(Y[i]==cls);
+                if(pp&&tp_)tp++; else if(pp)fp++; else if(tp_)fn++;
+            }
+            double p=(tp+fp>0)?(double)tp/(tp+fp):0.0;
+            double r=(tp+fn>0)?(double)tp/(tp+fn):0.0;
+            double f=(p+r>0)?2*p*r/(p+r):0.0;
+            sp+=p; sr+=r; sf+=f;
+        }
+        int nc=(int)classes.size();
+        m.precision=sp/nc; m.recall=sr/nc; m.f1=sf/nc;
+    }
+    return m;
+}
+
+// (mantida apenas como fallback para debugging — não usada no loop principal)
+static Metrics evaluate_1nn_cpu(
     const vector<int>& sol,
     const vector<double>& X, const vector<double>& Y,
     int N, int F, int eval_sample)
@@ -273,14 +326,20 @@ int main(int argc, char** argv) {
     int eval_top_k = (eval_top_k_exp > 0) ? eval_top_k_exp
                    : (N <= 1000) ? 5 : (N <= 10000) ? 3 : 1;
 
+    // Detectar classes uma única vez (para métricas)
+    vector<double> classes; bool binary;
+    detect_classes(ds.Y, classes, binary);
+
     srand(42);
 
     // ---- Alocar GPU ----
     GpuBuffers buf = alloc_gpu(N, K, F);
 
-    // Upload X
+    // Upload X e Y
     CUDA_CHECK(cudaMemcpy(buf.d_X, ds.X.data(),
                           (size_t)N * F * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(buf.d_Y, ds.Y.data(),
+                          (size_t)N * sizeof(double), cudaMemcpyHostToDevice));
 
     // ---- Computar visibilidade 1D na GPU ----
     // avg_dist[i] = média das distâncias euclidianas de i a todos os outros
@@ -312,7 +371,8 @@ int main(int argc, char** argv) {
 
     // ---- Buffers host para loop ----
     vector<double> h_select_prob(N);
-    vector<int>    h_colony((long long)K * N);
+    vector<int>    h_selected_count(K);   // só K ints por iter (256 bytes para K=64)
+    vector<int>    h_predictions(N);      // predições 1-NN GPU → CPU (N ints ≈ 20 KB)
     vector<int>    h_best(N, 0);
 
     double best_f1       = -1.0;
@@ -324,15 +384,14 @@ int main(int argc, char** argv) {
 
     int grid_ants = (K * N + 255) / 256;
     int grid_phe  = (N + 255) / 256;
-
-    // Eval sample (para datasets grandes)
-    int eval_sample = (N > 10000) ? 5000 : 0;
+    int grid_knn  = (N + 255) / 256;
 
     auto t_aco0 = chrono::high_resolution_clock::now();
     double gpu_compute_ms = 0.0;
+    double gpu_eval_ms    = 0.0;
 
     for (int iter = 0; iter < max_iter; ++iter) {
-        // -- 1. Compute select_prob na CPU: tau^alpha * eta^beta, normalizado --
+        // -- 1. select_prob na CPU: τ^α·η^β normalizado --
         CUDA_CHECK(cudaMemcpy(h_tau.data(), buf.d_pheromone,
                               N * sizeof(double), cudaMemcpyDeviceToHost));
         double wmax = 0.0;
@@ -342,15 +401,14 @@ int main(int argc, char** argv) {
         }
         if (wmax <= 0.0) wmax = 1.0;
         for (int i = 0; i < N; ++i) h_select_prob[i] /= wmax;
-
         CUDA_CHECK(cudaMemcpy(buf.d_select_prob, h_select_prob.data(),
                               N * sizeof(double), cudaMemcpyHostToDevice));
 
-        // -- 2. Resetar deposit e selected_count --
+        // -- 2. Reset --
         CUDA_CHECK(cudaMemset(buf.d_deposit,        0, N * sizeof(double)));
         CUDA_CHECK(cudaMemset(buf.d_selected_count, 0, K * sizeof(int)));
 
-        // -- 3. GPU: construção paralela --
+        // -- 3. GPU: construção + depósito + evaporação --
         cudaEvent_t ev0, ev1; float ms_iter;
         CUDA_CHECK(cudaEventCreate(&ev0));
         CUDA_CHECK(cudaEventCreate(&ev1));
@@ -360,12 +418,10 @@ int main(int argc, char** argv) {
             buf.d_select_prob, buf.d_colony, buf.d_selected_count, d_rng, N, K);
         CUDA_CHECK(cudaDeviceSynchronize());
 
-        // -- 4. GPU: depósito de feromônio --
         deposit_kernel<<<grid_ants, 256>>>(
             buf.d_colony, buf.d_selected_count, buf.d_deposit, N, K, Q);
         CUDA_CHECK(cudaDeviceSynchronize());
 
-        // -- 5. GPU: evaporação + aplicação do depósito --
         apply_pheromone_kernel<<<grid_phe, 256>>>(
             buf.d_pheromone, buf.d_deposit, N, evap_rate);
         CUDA_CHECK(cudaDeviceSynchronize());
@@ -377,59 +433,75 @@ int main(int argc, char** argv) {
         CUDA_CHECK(cudaEventDestroy(ev0));
         CUDA_CHECK(cudaEventDestroy(ev1));
 
-        // -- 6. Avaliação na CPU: baixar colônia, avaliar top-k formigas --
-        CUDA_CHECK(cudaMemcpy(h_colony.data(), buf.d_colony,
-                              (long long)K * N * sizeof(int), cudaMemcpyDeviceToHost));
+        // -- 4. Download de selected_count (K ints ≈ 256 bytes) para proxy ranking --
+        CUDA_CHECK(cudaMemcpy(h_selected_count.data(), buf.d_selected_count,
+                              K * sizeof(int), cudaMemcpyDeviceToHost));
 
-        // Proxy: ordenar formigas por número de instâncias selecionadas (desc)
+        // Proxy: top-K formigas por número de instâncias selecionadas
         vector<pair<int,int>> scores(K);
-        for (int k = 0; k < K; ++k) {
-            int cnt = 0;
-            for (int i = 0; i < N; ++i)
-                if (h_colony[(long long)k * N + i] == 1) cnt++;
-            scores[k] = {k, cnt};
-        }
+        for (int k = 0; k < K; ++k) scores[k] = {k, h_selected_count[k]};
         stable_sort(scores.begin(), scores.end(),
             [](const auto& a, const auto& b){ return a.second > b.second; });
 
+        // -- 5. GPU 1-NN: avalia top-K formigas diretamente na GPU --
         double best_f1_iter = -1.0;
-        int    best_k_iter  = 0;
         int    eval_count   = min(eval_top_k, K);
 
         for (int ei = 0; ei < eval_count; ++ei) {
             int k = scores[ei].first;
-            vector<int> sol(h_colony.data() + (long long)k * N,
-                            h_colony.data() + (long long)k * N + N);
-            Metrics m = evaluate_1nn(sol, ds.X, ds.Y, N, F, eval_sample);
+
+            cudaEvent_t ek0, ek1; float ms_knn;
+            CUDA_CHECK(cudaEventCreate(&ek0));
+            CUDA_CHECK(cudaEventCreate(&ek1));
+            CUDA_CHECK(cudaEventRecord(ek0));
+
+            // knn_1nn_kernel: N threads, cada um encontra NN no subconjunto selecionado
+            knn_1nn_kernel<<<grid_knn, 256>>>(
+                buf.d_X, buf.d_Y,
+                buf.d_colony + (long long)k * N,
+                buf.d_predictions,
+                N, F, N);
+            CUDA_CHECK(cudaDeviceSynchronize());
+
+            CUDA_CHECK(cudaEventRecord(ek1));
+            CUDA_CHECK(cudaEventSynchronize(ek1));
+            CUDA_CHECK(cudaEventElapsedTime(&ms_knn, ek0, ek1));
+            gpu_eval_ms += ms_knn;
+            CUDA_CHECK(cudaEventDestroy(ek0));
+            CUDA_CHECK(cudaEventDestroy(ek1));
+
+            // Download predições (N ints ≈ 20 KB)
+            CUDA_CHECK(cudaMemcpy(h_predictions.data(), buf.d_predictions,
+                                  N * sizeof(int), cudaMemcpyDeviceToHost));
+
+            Metrics m = compute_metrics(h_predictions, ds.Y, N,
+                                        h_selected_count[k], classes, binary);
             fprintf(stderr, "  Ant %d: F1=%.4f Acc=%.4f Red=%.1f%%\n",
                     k, m.f1, m.acc, m.reduction * 100.0);
-            if (m.f1 > best_f1_iter) {
+
+            if (m.f1 > best_f1_iter)
                 best_f1_iter = m.f1;
-                best_k_iter  = k;
+            if (m.f1 > best_f1) {
+                best_f1       = m.f1;
+                best_acc      = m.acc;
+                best_prec     = m.precision;
+                best_rec      = m.recall;
+                best_selected = m.selected;
+                // Download só da melhor solução (N ints ≈ 20 KB) — acontece poucas vezes
+                CUDA_CHECK(cudaMemcpy(h_best.data(),
+                                      buf.d_colony + (long long)k * N,
+                                      N * sizeof(int), cudaMemcpyDeviceToHost));
+                no_improve = -1;  // será incrementado logo abaixo
             }
         }
 
-        // Avaliar a melhor formiga desta iteração
-        vector<int> best_sol_iter(h_colony.data() + (long long)best_k_iter * N,
-                                  h_colony.data() + (long long)best_k_iter * N + N);
-        Metrics m_best = evaluate_1nn(best_sol_iter, ds.X, ds.Y, N, F, eval_sample);
-
+        no_improve++;
         fprintf(stderr,
-            "Iter %d: F1=%.4f Acc=%.4f Red=%.1f%% GPU=%.1fms (avaliadas=%d)\n",
-            iter + 1, m_best.f1, m_best.acc, m_best.reduction * 100.0,
-            ms_iter, eval_count);
-
-        if (m_best.f1 > best_f1) {
-            best_f1       = m_best.f1;
-            best_acc      = m_best.acc;
-            best_prec     = m_best.precision;
-            best_rec      = m_best.recall;
-            best_selected = m_best.selected;
-            h_best        = best_sol_iter;
-            no_improve    = 0;
-        } else {
-            no_improve++;
-        }
+            "Iter %d: F1=%.4f Acc=%.4f Red=%.1f%% GPU=%.2fms+%.2fms_knn (avaliadas=%d)\n",
+            iter + 1, best_f1, best_acc,
+            100.0 * (N - best_selected) / N,
+            ms_iter, gpu_eval_ms / (iter + 1),
+            eval_count);
 
         iters_done = iter + 1;
         if (no_improve >= patience) {
@@ -452,8 +524,9 @@ int main(int argc, char** argv) {
     cout << "F1-Score: "   << best_f1   << "\n";
     cout << "Iteracoes executadas: " << iters_done << "/" << max_iter;
     if (iters_done < max_iter) cout << " (early stop)\n"; else cout << "\n";
-    cout << "Tempo ACO: "     << aco_ms        << " ms\n";
-    cout << "GPU compute: "   << gpu_compute_ms << " ms\n";
+    cout << "Tempo ACO: "       << aco_ms        << " ms\n";
+    cout << "GPU compute: "     << gpu_compute_ms << " ms\n";
+    cout << "GPU eval (1-NN): " << gpu_eval_ms    << " ms\n";
     cout << "Eval strategy: top-" << eval_top_k << " formigas/iteracao (";
     if (eval_top_k_exp > 0) cout << "explicitamente configurado)\n";
     else cout << "auto-detectado para N=" << N << ")\n";

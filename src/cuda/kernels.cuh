@@ -46,3 +46,13 @@ __global__ void apply_pheromone_kernel(
 
 // Inicialização dos estados cuRAND
 __global__ void init_curand_kernel(curandState* states, unsigned long long seed, int N);
+
+// 1-NN paralelo para avaliação de qualidade
+// N_test threads: cada thread avalia 1 instância de teste contra o conjunto de treino
+// selected_mask[j] == 1 → instância j faz parte do treino
+// X[N*F] contém só features; Y[N] contém labels
+__global__ void knn_1nn_kernel(
+    const double* X, const double* Y,
+    const int*    selected_mask,
+    int*          predictions,
+    int N, int F, int N_test);

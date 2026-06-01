@@ -84,3 +84,29 @@ __global__ void init_curand_kernel(curandState* states, unsigned long long seed,
     if (tid >= N) return;
     curand_init(seed, tid, 0, &states[tid]);
 }
+
+// 1-NN paralelo: N_test threads, cada um encontra o vizinho mais próximo no conjunto de treino
+// X[N*F] — features; Y[N] — labels; selected_mask[N] — 1 = treino
+__global__ void knn_1nn_kernel(
+    const double* X, const double* Y,
+    const int*    selected_mask,
+    int*          predictions,
+    int N, int F, int N_test)
+{
+    int t = blockIdx.x * blockDim.x + threadIdx.x;
+    if (t >= N_test) return;
+
+    double best_d = 1e300;
+    double pred   = 0.0;
+
+    for (int j = 0; j < N; ++j) {
+        if (selected_mask[j] != 1) continue;
+        double d = 0.0;
+        for (int k = 0; k < F; ++k) {
+            double diff = X[(long long)t * F + k] - X[(long long)j * F + k];
+            d += diff * diff;
+        }
+        if (d < best_d) { best_d = d; pred = Y[j]; }
+    }
+    predictions[t] = (int)pred;
+}
