@@ -32,6 +32,7 @@ DATASETS=(
     "data/baseline/vaccine.csv:Vaccine_Hesitant"
     "data/baseline/Employee.csv:LeaveOr1t"
     "data/baseline/brain-stroke.csv:stroke"
+    "data/cdc/cdc_diabetes.csv:Diabetes_binary"
 )
 
 echo "======================================================="
@@ -75,6 +76,9 @@ run_one() {
     if [ "$MODE" = "omp" ]; then
         RAW=$(OMP_NUM_THREADS="$THREADS" "$BIN" "$DATASET" "$TARGET" \
               --ants "$ANTS" --iter "$ITER" 2>/dev/null) || { STATUS="FAIL"; }
+    elif [ "$MODE" = "seq" ]; then
+        RAW=$("$BIN" "$DATASET" "$TARGET" \
+              --ants "$ANTS" --iter "$ITER" --eval-sample 0 2>/dev/null) || { STATUS="FAIL"; }
     else
         RAW=$("$BIN" "$DATASET" "$TARGET" \
               --ants "$ANTS" --iter "$ITER" 2>/dev/null) || { STATUS="FAIL"; }
@@ -99,7 +103,7 @@ IDX=1
 for PAIR in "${DATASETS[@]}"; do
     IFS=':' read -r DATASET TARGET <<< "$PAIR"
     NAME=$(basename "$DATASET" .csv)
-    echo "[$IDX/9] $NAME ($TARGET)"
+    echo "[$IDX/${#DATASETS[@]}] $NAME ($TARGET)"
 
     # Sequencial
     run_one "$SEQ_BIN" "$DATASET" "$TARGET" "seq" "1" "$NAME"
