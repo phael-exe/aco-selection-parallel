@@ -16,6 +16,11 @@ OUTPUT_FILE = os.path.join(DATA_DIR, "cdc", "cdc_diabetes.csv")
 
 
 def main():
+    if os.path.exists(OUTPUT_FILE) and os.path.getsize(OUTPUT_FILE) > 0:
+        print(f"Dataset ja existe em: {OUTPUT_FILE} ({os.path.getsize(OUTPUT_FILE) / (1024*1024):.1f} MB)")
+        print("Pulo o download.")
+        return
+
     print("Baixando CDC Diabetes Health Indicators (id=891)...")
     dataset = fetch_ucirepo(id=891)
 
