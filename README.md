@@ -58,6 +58,33 @@ make benchmark    # compila e executa as versões disponíveis
 make clean        # remove build/
 ```
 
+## Execução via Containers (Sem Sudo/Root)
+
+Se você estiver rodando em uma máquina compartilhada ou servidor com GPU onde não possui permissões de administrador (`sudo`), você pode executar as implementações via Docker (se seu usuário fizer parte do grupo `docker`) ou via Singularity/Apptainer.
+
+O script auxiliar `./run_container.sh` simplifica este processo.
+
+### Opção A: Docker
+1. **Construir Imagem** (o dataset CDC Diabetes é incorporado automaticamente):
+   ```bash
+   ./run_container.sh build-docker
+   ```
+2. **Executar ACO**:
+   - **Sequencial:** `./run_container.sh run-seq` (usa subamostragem por padrão)
+   - **OpenMP (ex: 16 threads):** `./run_container.sh run-omp 16`
+   - **CUDA (RTX 4090):** `./run_container.sh run-cuda`
+   - **Benchmark Completo:** `./run_container.sh run-benchmark` (executa e salva os relatórios na pasta `./results/` da sua máquina local)
+
+### Opção B: Singularity / Apptainer (Comum em HPC)
+1. **Construir arquivo de imagem (.sif)**:
+   ```bash
+   ./run_container.sh build-singularity
+   ```
+2. **Executar ACO**:
+   - **Sequencial:** `singularity exec aco.sif ./build/aco_seq data/cdc/cdc_diabetes.csv Diabetes_binary --ants 64 --iter 10`
+   - **OpenMP:** `OMP_NUM_THREADS=16 singularity exec aco.sif ./build/aco_omp data/cdc/cdc_diabetes.csv Diabetes_binary --ants 64 --iter 10`
+   - **CUDA (RTX 4090):** `singularity exec --nv aco.sif ./build/aco_cuda data/cdc/cdc_diabetes.csv Diabetes_binary --ants 64 --iter 10`
+
 > CUDA e OpenMP são épicos separados. Enquanto `src/cuda/` e `src/openmp/`
 > estiverem vazios (ou `nvcc` não existir), esses targets são pulados sem erro.
 
