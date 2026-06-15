@@ -395,9 +395,16 @@ int main(int argc, char** argv) {
         CUDA_CHECK(cudaMemcpy(h_tau.data(), buf.d_pheromone,
                               N * sizeof(double), cudaMemcpyDeviceToHost));
         double wmax = 0.0;
-        for (int i = 0; i < N; ++i) {
-            h_select_prob[i] = pow(h_tau[i], alpha) * pow(h_vis[i], beta);
-            if (h_select_prob[i] > wmax) wmax = h_select_prob[i];
+        if (alpha == 1.0 && beta == 1.0) {
+            for (int i = 0; i < N; ++i) {
+                h_select_prob[i] = h_tau[i] * h_vis[i];
+                if (h_select_prob[i] > wmax) wmax = h_select_prob[i];
+            }
+        } else {
+            for (int i = 0; i < N; ++i) {
+                h_select_prob[i] = pow(h_tau[i], alpha) * pow(h_vis[i], beta);
+                if (h_select_prob[i] > wmax) wmax = h_select_prob[i];
+            }
         }
         if (wmax <= 0.0) wmax = 1.0;
         for (int i = 0; i < N; ++i) h_select_prob[i] /= wmax;

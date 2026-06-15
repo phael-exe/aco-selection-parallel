@@ -14,7 +14,7 @@ static double compute_distance_single(const double* x1, const double* x2, size_t
         double diff = x1[k] - x2[k];
         sum += diff * diff;
     }
-    return std::sqrt(sum);
+    return sum;  // distância ao quadrado — suficiente para argmin
 }
 
 // ---------------------------------------------------------------------------

@@ -179,10 +179,18 @@ static void evaporate_pheromone(double* pheromone, size_t N, double rho) {
 static void compute_select_prob(const double* pheromone, const double* visibility,
                                 size_t N, double alpha, double beta, double* select_prob) {
     double wmax = 0.0;
-    for (size_t i = 0; i < N; ++i) {
-        double w = std::pow(pheromone[i], alpha) * std::pow(visibility[i], beta);
-        select_prob[i] = w;
-        if (w > wmax) wmax = w;
+    if (alpha == 1.0 && beta == 1.0) {
+        for (size_t i = 0; i < N; ++i) {
+            double w = pheromone[i] * visibility[i];
+            select_prob[i] = w;
+            if (w > wmax) wmax = w;
+        }
+    } else {
+        for (size_t i = 0; i < N; ++i) {
+            double w = std::pow(pheromone[i], alpha) * std::pow(visibility[i], beta);
+            select_prob[i] = w;
+            if (w > wmax) wmax = w;
+        }
     }
     if (wmax <= 0.0) wmax = 1.0;  // guarda contra divisão por zero
     for (size_t i = 0; i < N; ++i) {
