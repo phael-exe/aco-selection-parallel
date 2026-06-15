@@ -79,26 +79,23 @@ static void compute_visibility_precomputed(const double* distances, size_t N, do
 }
 
 static void compute_visibility_on_the_fly(const double* X, size_t N, size_t F, double* visibility) {
-    // Calcular centróide
-    std::vector<double> centroid(F, 0.0);
-    for (size_t i = 0; i < N; ++i) {
-        for (size_t f = 0; f < F; ++f) {
-            centroid[f] += X[i * F + f];
-        }
-    }
-    for (size_t f = 0; f < F; ++f) {
-        centroid[f] /= N;
-    }
-    
-    // Calcular distância de cada instância ao centróide
+    // Calcula a visibilidade exata baseada na distância média par-a-par
+    // sem alocação O(N^2) de memória.
     for (size_t i = 0; i < N; ++i) {
         double sum = 0.0;
-        for (size_t f = 0; f < F; ++f) {
-            double diff = X[i * F + f] - centroid[f];
-            sum += diff * diff;
+        const double* xi = X + i * F;
+        for (size_t j = 0; j < N; ++j) {
+            if (i == j) continue;
+            const double* xj = X + j * F;
+            double d = 0.0;
+            for (size_t k = 0; k < F; ++k) {
+                double diff = xi[k] - xj[k];
+                d += diff * diff;
+            }
+            sum += std::sqrt(d);
         }
-        double dist_to_centroid = std::sqrt(sum);
-        visibility[i] = 1.0 / (1.0 + dist_to_centroid);
+        double avg_dist = sum / (N - 1);
+        visibility[i] = 1.0 / (1.0 + avg_dist);
     }
 }
 
