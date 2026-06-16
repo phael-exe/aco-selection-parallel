@@ -1,0 +1,38 @@
+nohup: ignorando entrada
+=======================================================
+ ACO HIGH-PERFORMANCE COMPUTING EXPERIMENTAL SUITE
+ Dataset: data/cdc/cdc_diabetes.csv | Ants: 64 | Iterations: 100
+=======================================================
+
+=== 1. Compilando Binários Otimizados ===
+rm -rf build
+g++ -std=c++17 -O3 -march=native -Wall -Wextra -o build/aco_seq src/sequential/aco.cpp src/sequential/csv_reader.cpp src/sequential/knn.cpp src/sequential/main.cpp src/sequential/metrics.cpp
+[sequential] OK -> build/aco_seq
+nvcc -std=c++17 -O2 -gencode arch=compute_89,code=sm_89 -gencode arch=compute_80,code=sm_80 -o build/aco_cuda src/cuda/kernels.cu src/cuda/main.cu -lcurand
+src/cuda/main.cu(385): warning #177-D: variable "patience" was declared but never referenced
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+src/cuda/main.cu(171): warning #177-D: function "evaluate_1nn_cpu" was declared but never referenced
+
+src/cuda/main.cu(385): warning #177-D: variable "patience" was declared but never referenced
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+src/cuda/main.cu(171): warning #177-D: function "evaluate_1nn_cpu" was declared but never referenced
+
+[cuda] OK -> build/aco_cuda
+g++ -std=c++17 -O3 -march=native -Wall -Wextra -fopenmp -o build/aco_omp src/openmp/aco_omp.cpp src/openmp/csv_reader.cpp src/openmp/knn.cpp src/openmp/main.cpp src/openmp/metrics.cpp
+[openmp] OK -> build/aco_omp
+
+=== 2. Verificando privilégios do 'perf' ===
+[AVISO] 'perf' restrito pelo kernel (perf_event_paranoid). Pulando IPC/Cache.
+Para habilitar, você pode rodar: sudo sysctl kernel.perf_event_paranoid=-1
+
+=== 3. Executando baseline Sequencial ===
+Running: Sequencial | Config: 1 thread | Scheduler: N/A...
+
+=== 4. Iniciando Experimentos OpenMP ===
+Running: OpenMP | Config: 1 threads | Scheduler: static...
+Running: OpenMP | Config: 1 threads | Scheduler: dynamic...
+Running: OpenMP | Config: 1 threads | Scheduler: guided...

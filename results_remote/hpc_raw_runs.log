@@ -1,0 +1,653 @@
+=== ACO HPC Experiment Run - seg 15 jun 2026 21:11:17 -03 ===
+  Ant 47: F1=0.7727, Acc=0.9368, Redução=23.1%
+Iter 1: F1=0.7727, Acc=0.9368, Redução=23.1%, Ants avaliadas=1, Tempo=350238 ms
+  Ant 45: F1=0.7720, Acc=0.9365, Redução=23.0%
+Iter 2: F1=0.7720, Acc=0.9368, Redução=23.0%, Ants avaliadas=1, Tempo=348010 ms
+  Ant 30: F1=0.7710, Acc=0.9362, Redução=23.1%
+Iter 3: F1=0.7710, Acc=0.9368, Redução=23.1%, Ants avaliadas=1, Tempo=349109 ms
+  Ant 20: F1=0.7700, Acc=0.9359, Redução=23.1%
+Iter 4: F1=0.7700, Acc=0.9368, Redução=23.1%, Ants avaliadas=1, Tempo=350220 ms
+  Ant 62: F1=0.7709, Acc=0.9362, Redução=23.2%
+Iter 5: F1=0.7709, Acc=0.9368, Redução=23.2%, Ants avaliadas=1, Tempo=349248 ms
+  Ant 41: F1=0.7727, Acc=0.9365, Redução=23.1%
+Iter 6: F1=0.7727, Acc=0.9365, Redução=23.1%, Ants avaliadas=1, Tempo=352367 ms
+  Ant 56: F1=0.7714, Acc=0.9365, Redução=23.1%
+Iter 7: F1=0.7714, Acc=0.9365, Redução=23.1%, Ants avaliadas=1, Tempo=349307 ms
+  Ant 12: F1=0.7709, Acc=0.9361, Redução=23.1%
+Iter 8: F1=0.7709, Acc=0.9365, Redução=23.1%, Ants avaliadas=1, Tempo=348980 ms
+  Ant 34: F1=0.7728, Acc=0.9365, Redução=23.1%
+Iter 9: F1=0.7728, Acc=0.9365, Redução=23.1%, Ants avaliadas=1, Tempo=349111 ms
+  Ant 56: F1=0.7721, Acc=0.9364, Redução=23.2%
+Iter 10: F1=0.7721, Acc=0.9365, Redução=23.2%, Ants avaliadas=1, Tempo=348137 ms
+  Ant 5: F1=0.7707, Acc=0.9362, Redução=23.2%
+Iter 11: F1=0.7707, Acc=0.9365, Redução=23.2%, Ants avaliadas=1, Tempo=347573 ms
+  Ant 40: F1=0.7695, Acc=0.9356, Redução=23.2%
+Iter 12: F1=0.7695, Acc=0.9365, Redução=23.2%, Ants avaliadas=1, Tempo=348035 ms
+  Ant 37: F1=0.7671, Acc=0.9353, Redução=23.2%
+Iter 13: F1=0.7671, Acc=0.9365, Redução=23.2%, Ants avaliadas=1, Tempo=346630 ms
+  Ant 60: F1=0.7714, Acc=0.9365, Redução=23.2%
+Iter 14: F1=0.7714, Acc=0.9365, Redução=23.2%, Ants avaliadas=1, Tempo=346831 ms
+  Ant 59: F1=0.7728, Acc=0.9369, Redução=23.2%
+Iter 15: F1=0.7728, Acc=0.9369, Redução=23.2%, Ants avaliadas=1, Tempo=346914 ms
+  Ant 53: F1=0.7685, Acc=0.9357, Redução=23.3%
+Iter 16: F1=0.7685, Acc=0.9369, Redução=23.3%, Ants avaliadas=1, Tempo=347165 ms
+  Ant 38: F1=0.7722, Acc=0.9365, Redução=23.2%
+Iter 17: F1=0.7722, Acc=0.9369, Redução=23.2%, Ants avaliadas=1, Tempo=347820 ms
+  Ant 30: F1=0.7680, Acc=0.9351, Redução=23.2%
+Iter 18: F1=0.7680, Acc=0.9369, Redução=23.2%, Ants avaliadas=1, Tempo=347899 ms
+  Ant 62: F1=0.7721, Acc=0.9367, Redução=23.3%
+Iter 19: F1=0.7721, Acc=0.9369, Redução=23.3%, Ants avaliadas=1, Tempo=347068 ms
+  Ant 38: F1=0.7689, Acc=0.9355, Redução=23.4%
+Iter 20: F1=0.7689, Acc=0.9369, Redução=23.4%, Ants avaliadas=1, Tempo=347762 ms
+  Ant 21: F1=0.7699, Acc=0.9361, Redução=23.4%
+Iter 21: F1=0.7699, Acc=0.9369, Redução=23.4%, Ants avaliadas=1, Tempo=346411 ms
+  Ant 3: F1=0.7679, Acc=0.9355, Redução=23.5%
+Iter 22: F1=0.7679, Acc=0.9369, Redução=23.5%, Ants avaliadas=1, Tempo=347428 ms
+  Ant 41: F1=0.7694, Acc=0.9358, Redução=23.5%
+Iter 23: F1=0.7694, Acc=0.9369, Redução=23.5%, Ants avaliadas=1, Tempo=353482 ms
+  Ant 52: F1=0.7678, Acc=0.9354, Redução=23.6%
+Iter 24: F1=0.7678, Acc=0.9369, Redução=23.6%, Ants avaliadas=1, Tempo=348043 ms
+  Ant 23: F1=0.7675, Acc=0.9350, Redução=23.6%
+Iter 25: F1=0.7675, Acc=0.9369, Redução=23.6%, Ants avaliadas=1, Tempo=344991 ms
+  Ant 49: F1=0.7683, Acc=0.9353, Redução=23.7%
+Iter 26: F1=0.7683, Acc=0.9369, Redução=23.7%, Ants avaliadas=1, Tempo=348037 ms
+  Ant 33: F1=0.7699, Acc=0.9358, Redução=23.7%
+Iter 27: F1=0.7699, Acc=0.9369, Redução=23.7%, Ants avaliadas=1, Tempo=347655 ms
+  Ant 0: F1=0.7668, Acc=0.9348, Redução=23.8%
+Iter 28: F1=0.7668, Acc=0.9369, Redução=23.8%, Ants avaliadas=1, Tempo=344356 ms
+  Ant 2: F1=0.7641, Acc=0.9341, Redução=23.9%
+Iter 29: F1=0.7641, Acc=0.9369, Redução=23.9%, Ants avaliadas=1, Tempo=345655 ms
+  Ant 52: F1=0.7664, Acc=0.9348, Redução=23.9%
+Iter 30: F1=0.7664, Acc=0.9369, Redução=23.9%, Ants avaliadas=1, Tempo=345682 ms
+  Ant 16: F1=0.7666, Acc=0.9348, Redução=24.0%
+Iter 31: F1=0.7666, Acc=0.9369, Redução=24.0%, Ants avaliadas=1, Tempo=342127 ms
+  Ant 25: F1=0.7620, Acc=0.9340, Redução=24.1%
+Iter 32: F1=0.7620, Acc=0.9369, Redução=24.1%, Ants avaliadas=1, Tempo=341507 ms
+  Ant 17: F1=0.7642, Acc=0.9344, Redução=24.2%
+Iter 33: F1=0.7642, Acc=0.9369, Redução=24.2%, Ants avaliadas=1, Tempo=342813 ms
+  Ant 61: F1=0.7618, Acc=0.9339, Redução=24.4%
+Iter 34: F1=0.7618, Acc=0.9369, Redução=24.4%, Ants avaliadas=1, Tempo=340322 ms
+  Ant 25: F1=0.7619, Acc=0.9334, Redução=24.5%
+Iter 35: F1=0.7619, Acc=0.9369, Redução=24.5%, Ants avaliadas=1, Tempo=338130 ms
+  Ant 9: F1=0.7595, Acc=0.9332, Redução=24.6%
+Iter 36: F1=0.7595, Acc=0.9369, Redução=24.6%, Ants avaliadas=1, Tempo=336218 ms
+  Ant 5: F1=0.7566, Acc=0.9322, Redução=24.8%
+Iter 37: F1=0.7566, Acc=0.9369, Redução=24.8%, Ants avaliadas=1, Tempo=335634 ms
+  Ant 63: F1=0.7580, Acc=0.9326, Redução=25.0%
+Iter 38: F1=0.7580, Acc=0.9369, Redução=25.0%, Ants avaliadas=1, Tempo=332857 ms
+  Ant 35: F1=0.7551, Acc=0.9312, Redução=25.2%
+Iter 39: F1=0.7551, Acc=0.9369, Redução=25.2%, Ants avaliadas=1, Tempo=331140 ms
+  Ant 8: F1=0.7537, Acc=0.9315, Redução=25.5%
+Iter 40: F1=0.7537, Acc=0.9369, Redução=25.5%, Ants avaliadas=1, Tempo=329766 ms
+  Ant 56: F1=0.7526, Acc=0.9312, Redução=25.6%
+Iter 41: F1=0.7526, Acc=0.9369, Redução=25.6%, Ants avaliadas=1, Tempo=329078 ms
+  Ant 33: F1=0.7506, Acc=0.9305, Redução=25.9%
+Iter 42: F1=0.7506, Acc=0.9369, Redução=25.9%, Ants avaliadas=1, Tempo=326084 ms
+  Ant 21: F1=0.7468, Acc=0.9297, Redução=26.1%
+Iter 43: F1=0.7468, Acc=0.9369, Redução=26.1%, Ants avaliadas=1, Tempo=325063 ms
+  Ant 29: F1=0.7447, Acc=0.9289, Redução=26.5%
+Iter 44: F1=0.7447, Acc=0.9369, Redução=26.5%, Ants avaliadas=1, Tempo=323084 ms
+  Ant 63: F1=0.7428, Acc=0.9284, Redução=26.8%
+Iter 45: F1=0.7428, Acc=0.9369, Redução=26.8%, Ants avaliadas=1, Tempo=319796 ms
+  Ant 38: F1=0.7398, Acc=0.9276, Redução=27.2%
+Iter 46: F1=0.7398, Acc=0.9369, Redução=27.2%, Ants avaliadas=1, Tempo=316220 ms
+  Ant 59: F1=0.7375, Acc=0.9267, Redução=27.5%
+Iter 47: F1=0.7375, Acc=0.9369, Redução=27.5%, Ants avaliadas=1, Tempo=313401 ms
+  Ant 17: F1=0.7367, Acc=0.9265, Redução=27.8%
+Iter 48: F1=0.7367, Acc=0.9369, Redução=27.8%, Ants avaliadas=1, Tempo=310887 ms
+  Ant 14: F1=0.7295, Acc=0.9248, Redução=28.3%
+Iter 49: F1=0.7295, Acc=0.9369, Redução=28.3%, Ants avaliadas=1, Tempo=307358 ms
+  Ant 32: F1=0.7298, Acc=0.9248, Redução=28.8%
+Iter 50: F1=0.7298, Acc=0.9369, Redução=28.8%, Ants avaliadas=1, Tempo=302198 ms
+  Ant 10: F1=0.7227, Acc=0.9227, Redução=29.3%
+Iter 51: F1=0.7227, Acc=0.9369, Redução=29.3%, Ants avaliadas=1, Tempo=301458 ms
+  Ant 15: F1=0.7203, Acc=0.9218, Redução=29.8%
+Iter 52: F1=0.7203, Acc=0.9369, Redução=29.8%, Ants avaliadas=1, Tempo=296605 ms
+  Ant 21: F1=0.7162, Acc=0.9208, Redução=30.3%
+Iter 53: F1=0.7162, Acc=0.9369, Redução=30.3%, Ants avaliadas=1, Tempo=291329 ms
+  Ant 35: F1=0.7100, Acc=0.9194, Redução=30.9%
+Iter 54: F1=0.7100, Acc=0.9369, Redução=30.9%, Ants avaliadas=1, Tempo=283925 ms
+  Ant 56: F1=0.7073, Acc=0.9185, Redução=31.5%
+Iter 55: F1=0.7073, Acc=0.9369, Redução=31.5%, Ants avaliadas=1, Tempo=278763 ms
+  Ant 44: F1=0.7017, Acc=0.9169, Redução=32.2%
+Iter 56: F1=0.7017, Acc=0.9369, Redução=32.2%, Ants avaliadas=1, Tempo=274426 ms
+  Ant 52: F1=0.6967, Acc=0.9155, Redução=32.7%
+Iter 57: F1=0.6967, Acc=0.9369, Redução=32.7%, Ants avaliadas=1, Tempo=270288 ms
+  Ant 49: F1=0.6947, Acc=0.9148, Redução=33.4%
+Iter 58: F1=0.6947, Acc=0.9369, Redução=33.4%, Ants avaliadas=1, Tempo=267057 ms
+  Ant 30: F1=0.6895, Acc=0.9133, Redução=34.1%
+Iter 59: F1=0.6895, Acc=0.9369, Redução=34.1%, Ants avaliadas=1, Tempo=258888 ms
+  Ant 36: F1=0.6817, Acc=0.9116, Redução=34.9%
+Iter 60: F1=0.6817, Acc=0.9369, Redução=34.9%, Ants avaliadas=1, Tempo=252135 ms
+  Ant 13: F1=0.6753, Acc=0.9098, Redução=35.7%
+Iter 61: F1=0.6753, Acc=0.9369, Redução=35.7%, Ants avaliadas=1, Tempo=247573 ms
+  Ant 38: F1=0.6698, Acc=0.9080, Redução=36.4%
+Iter 62: F1=0.6698, Acc=0.9369, Redução=36.4%, Ants avaliadas=1, Tempo=242482 ms
+  Ant 4: F1=0.6661, Acc=0.9075, Redução=37.2%
+Iter 63: F1=0.6661, Acc=0.9369, Redução=37.2%, Ants avaliadas=1, Tempo=236914 ms
+  Ant 5: F1=0.6569, Acc=0.9049, Redução=38.0%
+Iter 64: F1=0.6569, Acc=0.9369, Redução=38.0%, Ants avaliadas=1, Tempo=229011 ms
+  Ant 58: F1=0.6515, Acc=0.9033, Redução=38.8%
+Iter 65: F1=0.6515, Acc=0.9369, Redução=38.8%, Ants avaliadas=1, Tempo=223295 ms
+  Ant 23: F1=0.6486, Acc=0.9022, Redução=39.6%
+Iter 66: F1=0.6486, Acc=0.9369, Redução=39.6%, Ants avaliadas=1, Tempo=216043 ms
+  Ant 36: F1=0.6405, Acc=0.8998, Redução=40.4%
+Iter 67: F1=0.6405, Acc=0.9369, Redução=40.4%, Ants avaliadas=1, Tempo=213486 ms
+  Ant 48: F1=0.6392, Acc=0.8997, Redução=41.2%
+Iter 68: F1=0.6392, Acc=0.9369, Redução=41.2%, Ants avaliadas=1, Tempo=207547 ms
+  Ant 40: F1=0.6258, Acc=0.8966, Redução=42.1%
+Iter 69: F1=0.6258, Acc=0.9369, Redução=42.1%, Ants avaliadas=1, Tempo=201793 ms
+  Ant 21: F1=0.6210, Acc=0.8943, Redução=42.9%
+Iter 70: F1=0.6210, Acc=0.9369, Redução=42.9%, Ants avaliadas=1, Tempo=193875 ms
+  Ant 28: F1=0.6161, Acc=0.8931, Redução=43.7%
+Iter 71: F1=0.6161, Acc=0.9369, Redução=43.7%, Ants avaliadas=1, Tempo=188589 ms
+  Ant 39: F1=0.6137, Acc=0.8921, Redução=44.5%
+Iter 72: F1=0.6137, Acc=0.9369, Redução=44.5%, Ants avaliadas=1, Tempo=178856 ms
+  Ant 20: F1=0.6056, Acc=0.8898, Redução=45.3%
+Iter 73: F1=0.6056, Acc=0.9369, Redução=45.3%, Ants avaliadas=1, Tempo=175962 ms
+  Ant 59: F1=0.6003, Acc=0.8879, Redução=46.0%
+Iter 74: F1=0.6003, Acc=0.9369, Redução=46.0%, Ants avaliadas=1, Tempo=172910 ms
+  Ant 56: F1=0.5969, Acc=0.8875, Redução=46.9%
+Iter 75: F1=0.5969, Acc=0.9369, Redução=46.9%, Ants avaliadas=1, Tempo=167477 ms
+  Ant 19: F1=0.5904, Acc=0.8861, Redução=47.7%
+Iter 76: F1=0.5904, Acc=0.9369, Redução=47.7%, Ants avaliadas=1, Tempo=162427 ms
+  Ant 21: F1=0.5855, Acc=0.8843, Redução=48.5%
+Iter 77: F1=0.5855, Acc=0.9369, Redução=48.5%, Ants avaliadas=1, Tempo=161098 ms
+  Ant 30: F1=0.5818, Acc=0.8838, Redução=49.2%
+Iter 78: F1=0.5818, Acc=0.9369, Redução=49.2%, Ants avaliadas=1, Tempo=156126 ms
+  Ant 49: F1=0.5736, Acc=0.8820, Redução=50.0%
+Iter 79: F1=0.5736, Acc=0.9369, Redução=50.0%, Ants avaliadas=1, Tempo=154765 ms
+  Ant 50: F1=0.5656, Acc=0.8797, Redução=50.8%
+Iter 80: F1=0.5656, Acc=0.9369, Redução=50.8%, Ants avaliadas=1, Tempo=149458 ms
+  Ant 26: F1=0.5625, Acc=0.8774, Redução=51.5%
+Iter 81: F1=0.5625, Acc=0.9369, Redução=51.5%, Ants avaliadas=1, Tempo=145535 ms
+  Ant 17: F1=0.5563, Acc=0.8764, Redução=52.2%
+Iter 82: F1=0.5563, Acc=0.9369, Redução=52.2%, Ants avaliadas=1, Tempo=139776 ms
+  Ant 59: F1=0.5507, Acc=0.8758, Redução=52.9%
+Iter 83: F1=0.5507, Acc=0.9369, Redução=52.9%, Ants avaliadas=1, Tempo=134796 ms
+  Ant 43: F1=0.5504, Acc=0.8758, Redução=53.6%
+Iter 84: F1=0.5504, Acc=0.9369, Redução=53.6%, Ants avaliadas=1, Tempo=130936 ms
+  Ant 50: F1=0.5378, Acc=0.8711, Redução=54.3%
+Iter 85: F1=0.5378, Acc=0.9369, Redução=54.3%, Ants avaliadas=1, Tempo=128383 ms
+  Ant 5: F1=0.5387, Acc=0.8719, Redução=54.9%
+Iter 86: F1=0.5387, Acc=0.9369, Redução=54.9%, Ants avaliadas=1, Tempo=125104 ms
+  Ant 54: F1=0.5380, Acc=0.8723, Redução=55.6%
+Iter 87: F1=0.5380, Acc=0.9369, Redução=55.6%, Ants avaliadas=1, Tempo=126194 ms
+  Ant 44: F1=0.5350, Acc=0.8696, Redução=56.2%
+Iter 88: F1=0.5350, Acc=0.9369, Redução=56.2%, Ants avaliadas=1, Tempo=120738 ms
+  Ant 21: F1=0.5269, Acc=0.8685, Redução=56.9%
+Iter 89: F1=0.5269, Acc=0.9369, Redução=56.9%, Ants avaliadas=1, Tempo=117330 ms
+  Ant 60: F1=0.5215, Acc=0.8674, Redução=57.5%
+Iter 90: F1=0.5215, Acc=0.9369, Redução=57.5%, Ants avaliadas=1, Tempo=116988 ms
+  Ant 47: F1=0.5203, Acc=0.8641, Redução=58.0%
+Iter 91: F1=0.5203, Acc=0.9369, Redução=58.0%, Ants avaliadas=1, Tempo=112277 ms
+  Ant 39: F1=0.5154, Acc=0.8656, Redução=58.7%
+Iter 92: F1=0.5154, Acc=0.9369, Redução=58.7%, Ants avaliadas=1, Tempo=109792 ms
+  Ant 9: F1=0.5110, Acc=0.8632, Redução=59.3%
+Iter 93: F1=0.5110, Acc=0.9369, Redução=59.3%, Ants avaliadas=1, Tempo=107059 ms
+  Ant 7: F1=0.5027, Acc=0.8642, Redução=59.6%
+Iter 94: F1=0.5027, Acc=0.9369, Redução=59.6%, Ants avaliadas=1, Tempo=106487 ms
+  Ant 39: F1=0.4996, Acc=0.8600, Redução=60.4%
+Iter 95: F1=0.4996, Acc=0.9369, Redução=60.4%, Ants avaliadas=1, Tempo=102995 ms
+  Ant 24: F1=0.4983, Acc=0.8614, Redução=60.9%
+Iter 96: F1=0.4983, Acc=0.9369, Redução=60.9%, Ants avaliadas=1, Tempo=101753 ms
+  Ant 49: F1=0.4990, Acc=0.8591, Redução=61.5%
+Iter 97: F1=0.4990, Acc=0.9369, Redução=61.5%, Ants avaliadas=1, Tempo=99337 ms
+  Ant 62: F1=0.5015, Acc=0.8588, Redução=61.9%
+Iter 98: F1=0.5015, Acc=0.9369, Redução=61.9%, Ants avaliadas=1, Tempo=98312 ms
+  Ant 61: F1=0.4919, Acc=0.8570, Redução=62.5%
+Iter 99: F1=0.4919, Acc=0.9369, Redução=62.5%, Ants avaliadas=1, Tempo=96360 ms
+  Ant 26: F1=0.4819, Acc=0.8584, Redução=63.0%
+Iter 100: F1=0.4819, Acc=0.9369, Redução=63.0%, Ants avaliadas=1, Tempo=95250 ms
+Dataset carregado: 253680 instancias, 21 features
+Tempo de leitura:  397.194 ms
+Parametros ACO:    ants=64, iter=100, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO ===
+Melhor solucao: 194835/253680 instancias (reducao ~23.1965%)
+Acuracia: 0.936865
+Precisao: 0.774949
+Recall: 0.770695
+F1-Score: 0.772816
+Iteracoes executadas: 100/100
+Tempo ACO: 2.6494e+07 ms
+Tempo eval (1-NN): 2.59355e+07 ms
+CPU eval throughput: 10.0788 GFLOPS
+Eval strategy: top-1 formigas/iteracao (auto-detectado para N=253680)
+  Ant 26: F1=0.7733, Acc=0.9368, Redução=23.1%
+Iter 1: F1=0.7733, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 47: F1=0.7733, Acc=0.9368, Redução=23.0%
+Iter 2: F1=0.7733, Acc=0.9368, Redução=23.0%, Ants avaliadas=1
+  Ant 17: F1=0.7702, Acc=0.9357, Redução=23.1%
+Iter 3: F1=0.7702, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 60: F1=0.7712, Acc=0.9366, Redução=23.1%
+Iter 4: F1=0.7712, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 61: F1=0.7721, Acc=0.9364, Redução=23.1%
+Iter 5: F1=0.7721, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 49: F1=0.7726, Acc=0.9365, Redução=23.1%
+Iter 6: F1=0.7726, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 3: F1=0.7717, Acc=0.9366, Redução=23.1%
+Iter 7: F1=0.7717, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 39: F1=0.7723, Acc=0.9366, Redução=23.1%
+Iter 8: F1=0.7723, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 50: F1=0.7720, Acc=0.9365, Redução=23.2%
+Iter 9: F1=0.7720, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 10: F1=0.7700, Acc=0.9358, Redução=23.2%
+Iter 10: F1=0.7700, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 22: F1=0.7702, Acc=0.9361, Redução=23.2%
+Iter 11: F1=0.7702, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 48: F1=0.7695, Acc=0.9359, Redução=23.2%
+Iter 12: F1=0.7695, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 46: F1=0.7714, Acc=0.9360, Redução=23.2%
+Iter 13: F1=0.7714, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 58: F1=0.7699, Acc=0.9359, Redução=23.2%
+Iter 14: F1=0.7699, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 26: F1=0.7718, Acc=0.9364, Redução=23.2%
+Iter 15: F1=0.7718, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 2: F1=0.7690, Acc=0.9356, Redução=23.2%
+Iter 16: F1=0.7690, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 60: F1=0.7682, Acc=0.9354, Redução=23.3%
+Iter 17: F1=0.7682, Acc=0.9368, Redução=23.3%, Ants avaliadas=1
+  Ant 28: F1=0.7710, Acc=0.9363, Redução=23.3%
+Iter 18: F1=0.7710, Acc=0.9368, Redução=23.3%, Ants avaliadas=1
+  Ant 27: F1=0.7693, Acc=0.9357, Redução=23.4%
+Iter 19: F1=0.7693, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+  Ant 27: F1=0.7692, Acc=0.9360, Redução=23.4%
+Iter 20: F1=0.7692, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+  Ant 37: F1=0.7683, Acc=0.9355, Redução=23.5%
+Iter 21: F1=0.7683, Acc=0.9368, Redução=23.5%, Ants avaliadas=1
+  Ant 22: F1=0.7679, Acc=0.9354, Redução=23.4%
+Iter 22: F1=0.7679, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+  Ant 53: F1=0.7681, Acc=0.9351, Redução=23.5%
+Iter 23: F1=0.7681, Acc=0.9368, Redução=23.5%, Ants avaliadas=1
+  Ant 48: F1=0.7677, Acc=0.9351, Redução=23.5%
+Iter 24: F1=0.7677, Acc=0.9368, Redução=23.5%, Ants avaliadas=1
+  Ant 52: F1=0.7677, Acc=0.9352, Redução=23.6%
+Iter 25: F1=0.7677, Acc=0.9368, Redução=23.6%, Ants avaliadas=1
+  Ant 22: F1=0.7650, Acc=0.9346, Redução=23.7%
+Iter 26: F1=0.7650, Acc=0.9368, Redução=23.7%, Ants avaliadas=1
+  Ant 56: F1=0.7676, Acc=0.9352, Redução=23.7%
+Iter 27: F1=0.7676, Acc=0.9368, Redução=23.7%, Ants avaliadas=1
+  Ant 0: F1=0.7691, Acc=0.9357, Redução=23.8%
+Iter 28: F1=0.7691, Acc=0.9368, Redução=23.8%, Ants avaliadas=1
+  Ant 61: F1=0.7659, Acc=0.9349, Redução=23.8%
+Iter 29: F1=0.7659, Acc=0.9368, Redução=23.8%, Ants avaliadas=1
+  Ant 17: F1=0.7636, Acc=0.9343, Redução=24.0%
+Iter 30: F1=0.7636, Acc=0.9368, Redução=24.0%, Ants avaliadas=1
+  Ant 20: F1=0.7650, Acc=0.9345, Redução=24.0%
+Iter 31: F1=0.7650, Acc=0.9368, Redução=24.0%, Ants avaliadas=1
+  Ant 28: F1=0.7624, Acc=0.9337, Redução=24.2%
+Iter 32: F1=0.7624, Acc=0.9368, Redução=24.2%, Ants avaliadas=1
+  Ant 9: F1=0.7658, Acc=0.9345, Redução=24.3%
+Iter 33: F1=0.7658, Acc=0.9368, Redução=24.3%, Ants avaliadas=1
+  Ant 31: F1=0.7618, Acc=0.9339, Redução=24.3%
+Iter 34: F1=0.7618, Acc=0.9368, Redução=24.3%, Ants avaliadas=1
+  Ant 7: F1=0.7622, Acc=0.9338, Redução=24.5%
+Iter 35: F1=0.7622, Acc=0.9368, Redução=24.5%, Ants avaliadas=1
+  Ant 7: F1=0.7592, Acc=0.9331, Redução=24.7%
+Iter 36: F1=0.7592, Acc=0.9368, Redução=24.7%, Ants avaliadas=1
+  Ant 12: F1=0.7604, Acc=0.9331, Redução=24.8%
+Iter 37: F1=0.7604, Acc=0.9368, Redução=24.8%, Ants avaliadas=1
+  Ant 0: F1=0.7577, Acc=0.9328, Redução=25.0%
+Iter 38: F1=0.7577, Acc=0.9368, Redução=25.0%, Ants avaliadas=1
+  Ant 4: F1=0.7550, Acc=0.9318, Redução=25.2%
+Iter 39: F1=0.7550, Acc=0.9368, Redução=25.2%, Ants avaliadas=1
+  Ant 47: F1=0.7535, Acc=0.9311, Redução=25.4%
+Iter 40: F1=0.7535, Acc=0.9368, Redução=25.4%, Ants avaliadas=1
+  Ant 27: F1=0.7528, Acc=0.9310, Redução=25.6%
+Iter 41: F1=0.7528, Acc=0.9368, Redução=25.6%, Ants avaliadas=1
+  Ant 42: F1=0.7519, Acc=0.9313, Redução=25.9%
+Iter 42: F1=0.7519, Acc=0.9368, Redução=25.9%, Ants avaliadas=1
+  Ant 60: F1=0.7505, Acc=0.9308, Redução=26.1%
+Iter 43: F1=0.7505, Acc=0.9368, Redução=26.1%, Ants avaliadas=1
+  Ant 17: F1=0.7443, Acc=0.9290, Redução=26.5%
+Iter 44: F1=0.7443, Acc=0.9368, Redução=26.5%, Ants avaliadas=1
+  Ant 44: F1=0.7446, Acc=0.9286, Redução=26.8%
+Iter 45: F1=0.7446, Acc=0.9368, Redução=26.8%, Ants avaliadas=1
+  Ant 41: F1=0.7406, Acc=0.9275, Redução=27.1%
+Iter 46: F1=0.7406, Acc=0.9368, Redução=27.1%, Ants avaliadas=1
+  Ant 33: F1=0.7367, Acc=0.9268, Redução=27.5%
+Iter 47: F1=0.7367, Acc=0.9368, Redução=27.5%, Ants avaliadas=1
+  Ant 46: F1=0.7332, Acc=0.9258, Redução=27.9%
+Iter 48: F1=0.7332, Acc=0.9368, Redução=27.9%, Ants avaliadas=1
+  Ant 16: F1=0.7312, Acc=0.9248, Redução=28.3%
+Iter 49: F1=0.7312, Acc=0.9368, Redução=28.3%, Ants avaliadas=1
+  Ant 29: F1=0.7255, Acc=0.9235, Redução=28.9%
+Iter 50: F1=0.7255, Acc=0.9368, Redução=28.9%, Ants avaliadas=1
+  Ant 38: F1=0.7235, Acc=0.9232, Redução=29.2%
+Iter 51: F1=0.7235, Acc=0.9368, Redução=29.2%, Ants avaliadas=1
+  Ant 4: F1=0.7240, Acc=0.9231, Redução=29.8%
+Iter 52: F1=0.7240, Acc=0.9368, Redução=29.8%, Ants avaliadas=1
+  Ant 34: F1=0.7174, Acc=0.9214, Redução=30.3%
+Iter 53: F1=0.7174, Acc=0.9368, Redução=30.3%, Ants avaliadas=1
+  Ant 28: F1=0.7107, Acc=0.9197, Redução=30.9%
+Iter 54: F1=0.7107, Acc=0.9368, Redução=30.9%, Ants avaliadas=1
+  Ant 38: F1=0.7079, Acc=0.9187, Redução=31.5%
+Iter 55: F1=0.7079, Acc=0.9368, Redução=31.5%, Ants avaliadas=1
+  Ant 42: F1=0.7015, Acc=0.9167, Redução=32.2%
+Iter 56: F1=0.7015, Acc=0.9368, Redução=32.2%, Ants avaliadas=1
+  Ant 22: F1=0.6975, Acc=0.9156, Redução=32.8%
+Iter 57: F1=0.6975, Acc=0.9368, Redução=32.8%, Ants avaliadas=1
+  Ant 49: F1=0.6938, Acc=0.9152, Redução=33.5%
+Iter 58: F1=0.6938, Acc=0.9368, Redução=33.5%, Ants avaliadas=1
+  Ant 46: F1=0.6871, Acc=0.9125, Redução=34.2%
+Iter 59: F1=0.6871, Acc=0.9368, Redução=34.2%, Ants avaliadas=1
+  Ant 57: F1=0.6803, Acc=0.9111, Redução=34.9%
+Iter 60: F1=0.6803, Acc=0.9368, Redução=34.9%, Ants avaliadas=1
+  Ant 44: F1=0.6760, Acc=0.9098, Redução=35.7%
+Iter 61: F1=0.6760, Acc=0.9368, Redução=35.7%, Ants avaliadas=1
+  Ant 17: F1=0.6716, Acc=0.9088, Redução=36.5%
+Iter 62: F1=0.6716, Acc=0.9368, Redução=36.5%, Ants avaliadas=1
+  Ant 18: F1=0.6654, Acc=0.9076, Redução=37.1%
+Iter 63: F1=0.6654, Acc=0.9368, Redução=37.1%, Ants avaliadas=1
+  Ant 44: F1=0.6601, Acc=0.9052, Redução=38.0%
+Iter 64: F1=0.6601, Acc=0.9368, Redução=38.0%, Ants avaliadas=1
+  Ant 35: F1=0.6506, Acc=0.9034, Redução=38.8%
+Iter 65: F1=0.6506, Acc=0.9368, Redução=38.8%, Ants avaliadas=1
+  Ant 56: F1=0.6464, Acc=0.9018, Redução=39.5%
+Iter 66: F1=0.6464, Acc=0.9368, Redução=39.5%, Ants avaliadas=1
+  Ant 2: F1=0.6420, Acc=0.9004, Redução=40.4%
+Iter 67: F1=0.6420, Acc=0.9368, Redução=40.4%, Ants avaliadas=1
+  Ant 60: F1=0.6324, Acc=0.8975, Redução=41.2%
+Iter 68: F1=0.6324, Acc=0.9368, Redução=41.2%, Ants avaliadas=1
+  Ant 39: F1=0.6273, Acc=0.8969, Redução=42.1%
+Iter 69: F1=0.6273, Acc=0.9368, Redução=42.1%, Ants avaliadas=1
+  Ant 54: F1=0.6217, Acc=0.8941, Redução=42.9%
+Iter 70: F1=0.6217, Acc=0.9368, Redução=42.9%, Ants avaliadas=1
+  Ant 53: F1=0.6195, Acc=0.8936, Redução=43.6%
+Iter 71: F1=0.6195, Acc=0.9368, Redução=43.6%, Ants avaliadas=1
+  Ant 47: F1=0.6121, Acc=0.8923, Redução=44.4%
+Iter 72: F1=0.6121, Acc=0.9368, Redução=44.4%, Ants avaliadas=1
+  Ant 5: F1=0.6094, Acc=0.8918, Redução=45.2%
+Iter 73: F1=0.6094, Acc=0.9368, Redução=45.2%, Ants avaliadas=1
+  Ant 7: F1=0.5997, Acc=0.8882, Redução=46.1%
+Iter 74: F1=0.5997, Acc=0.9368, Redução=46.1%, Ants avaliadas=1
+  Ant 50: F1=0.5973, Acc=0.8881, Redução=46.9%
+Iter 75: F1=0.5973, Acc=0.9368, Redução=46.9%, Ants avaliadas=1
+  Ant 31: F1=0.5909, Acc=0.8854, Redução=47.7%
+Iter 76: F1=0.5909, Acc=0.9368, Redução=47.7%, Ants avaliadas=1
+  Ant 53: F1=0.5822, Acc=0.8844, Redução=48.5%
+Iter 77: F1=0.5822, Acc=0.9368, Redução=48.5%, Ants avaliadas=1
+  Ant 19: F1=0.5825, Acc=0.8838, Redução=49.3%
+Iter 78: F1=0.5825, Acc=0.9368, Redução=49.3%, Ants avaliadas=1
+  Ant 20: F1=0.5738, Acc=0.8815, Redução=50.0%
+Iter 79: F1=0.5738, Acc=0.9368, Redução=50.0%, Ants avaliadas=1
+  Ant 11: F1=0.5670, Acc=0.8808, Redução=50.7%
+Iter 80: F1=0.5670, Acc=0.9368, Redução=50.7%, Ants avaliadas=1
+  Ant 28: F1=0.5624, Acc=0.8782, Redução=51.5%
+Iter 81: F1=0.5624, Acc=0.9368, Redução=51.5%, Ants avaliadas=1
+  Ant 46: F1=0.5606, Acc=0.8781, Redução=52.2%
+Iter 82: F1=0.5606, Acc=0.9368, Redução=52.2%, Ants avaliadas=1
+  Ant 49: F1=0.5564, Acc=0.8769, Redução=52.8%
+Iter 83: F1=0.5564, Acc=0.9368, Redução=52.8%, Ants avaliadas=1
+  Ant 39: F1=0.5481, Acc=0.8738, Redução=53.5%
+Iter 84: F1=0.5481, Acc=0.9368, Redução=53.5%, Ants avaliadas=1
+  Ant 15: F1=0.5418, Acc=0.8732, Redução=54.3%
+Iter 85: F1=0.5418, Acc=0.9368, Redução=54.3%, Ants avaliadas=1
+  Ant 5: F1=0.5419, Acc=0.8720, Redução=55.0%
+Iter 86: F1=0.5419, Acc=0.9368, Redução=55.0%, Ants avaliadas=1
+  Ant 32: F1=0.5363, Acc=0.8697, Redução=55.6%
+Iter 87: F1=0.5363, Acc=0.9368, Redução=55.6%, Ants avaliadas=1
+  Ant 13: F1=0.5310, Acc=0.8704, Redução=56.2%
+Iter 88: F1=0.5310, Acc=0.9368, Redução=56.2%, Ants avaliadas=1
+  Ant 18: F1=0.5293, Acc=0.8687, Redução=56.8%
+Iter 89: F1=0.5293, Acc=0.9368, Redução=56.8%, Ants avaliadas=1
+  Ant 1: F1=0.5207, Acc=0.8675, Redução=57.5%
+Iter 90: F1=0.5207, Acc=0.9368, Redução=57.5%, Ants avaliadas=1
+  Ant 33: F1=0.5153, Acc=0.8668, Redução=58.0%
+Iter 91: F1=0.5153, Acc=0.9368, Redução=58.0%, Ants avaliadas=1
+  Ant 56: F1=0.5204, Acc=0.8664, Redução=58.6%
+Iter 92: F1=0.5204, Acc=0.9368, Redução=58.6%, Ants avaliadas=1
+  Ant 54: F1=0.5129, Acc=0.8642, Redução=59.3%
+Iter 93: F1=0.5129, Acc=0.9368, Redução=59.3%, Ants avaliadas=1
+  Ant 35: F1=0.5047, Acc=0.8637, Redução=59.8%
+Iter 94: F1=0.5047, Acc=0.9368, Redução=59.8%, Ants avaliadas=1
+  Ant 54: F1=0.5070, Acc=0.8615, Redução=60.4%
+Iter 95: F1=0.5070, Acc=0.9368, Redução=60.4%, Ants avaliadas=1
+  Ant 24: F1=0.5028, Acc=0.8606, Redução=60.9%
+Iter 96: F1=0.5028, Acc=0.9368, Redução=60.9%, Ants avaliadas=1
+  Ant 59: F1=0.4999, Acc=0.8587, Redução=61.4%
+Iter 97: F1=0.4999, Acc=0.9368, Redução=61.4%, Ants avaliadas=1
+  Ant 29: F1=0.4988, Acc=0.8607, Redução=62.0%
+Iter 98: F1=0.4988, Acc=0.9368, Redução=62.0%, Ants avaliadas=1
+  Ant 59: F1=0.4839, Acc=0.8608, Redução=62.5%
+Iter 99: F1=0.4839, Acc=0.9368, Redução=62.5%, Ants avaliadas=1
+  Ant 33: F1=0.4863, Acc=0.8556, Redução=63.1%
+Iter 100: F1=0.4863, Acc=0.9368, Redução=63.1%, Ants avaliadas=1
+Dataset carregado: 253680 instancias, 21 features
+Tempo de leitura:  390.195 ms
+Threads OpenMP:    1
+Parametros ACO:    ants=64, iter=100, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 195207/253680 instancias (reducao ~23.0499%)
+Acuracia: 0.936798
+Precisao: 0.772991
+Recall: 0.773581
+F1-Score: 0.773286
+Iteracoes executadas: 100/100
+Tempo ACO: 2.6451e+07 ms
+Tempo eval (1-NN): 2.58922e+07 ms
+CPU eval throughput: 10.0956 GFLOPS
+Threads: 1
+Eval strategy: top-1 formigas/iteracao (auto-detectado para N=253680)
+  Ant 26: F1=0.7733, Acc=0.9368, Redução=23.1%
+Iter 1: F1=0.7733, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 47: F1=0.7733, Acc=0.9368, Redução=23.0%
+Iter 2: F1=0.7733, Acc=0.9368, Redução=23.0%, Ants avaliadas=1
+  Ant 17: F1=0.7702, Acc=0.9357, Redução=23.1%
+Iter 3: F1=0.7702, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 60: F1=0.7712, Acc=0.9366, Redução=23.1%
+Iter 4: F1=0.7712, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 61: F1=0.7721, Acc=0.9364, Redução=23.1%
+Iter 5: F1=0.7721, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 49: F1=0.7726, Acc=0.9365, Redução=23.1%
+Iter 6: F1=0.7726, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 3: F1=0.7717, Acc=0.9366, Redução=23.1%
+Iter 7: F1=0.7717, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 39: F1=0.7723, Acc=0.9366, Redução=23.1%
+Iter 8: F1=0.7723, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 50: F1=0.7720, Acc=0.9365, Redução=23.2%
+Iter 9: F1=0.7720, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 10: F1=0.7700, Acc=0.9358, Redução=23.2%
+Iter 10: F1=0.7700, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 22: F1=0.7702, Acc=0.9361, Redução=23.2%
+Iter 11: F1=0.7702, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 48: F1=0.7695, Acc=0.9359, Redução=23.2%
+Iter 12: F1=0.7695, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 46: F1=0.7714, Acc=0.9360, Redução=23.2%
+Iter 13: F1=0.7714, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 58: F1=0.7699, Acc=0.9359, Redução=23.2%
+Iter 14: F1=0.7699, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 26: F1=0.7718, Acc=0.9364, Redução=23.2%
+Iter 15: F1=0.7718, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 2: F1=0.7690, Acc=0.9356, Redução=23.2%
+Iter 16: F1=0.7690, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 60: F1=0.7682, Acc=0.9354, Redução=23.3%
+Iter 17: F1=0.7682, Acc=0.9368, Redução=23.3%, Ants avaliadas=1
+  Ant 28: F1=0.7710, Acc=0.9363, Redução=23.3%
+Iter 18: F1=0.7710, Acc=0.9368, Redução=23.3%, Ants avaliadas=1
+  Ant 27: F1=0.7693, Acc=0.9357, Redução=23.4%
+Iter 19: F1=0.7693, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+  Ant 27: F1=0.7692, Acc=0.9360, Redução=23.4%
+Iter 20: F1=0.7692, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+  Ant 37: F1=0.7683, Acc=0.9355, Redução=23.5%
+Iter 21: F1=0.7683, Acc=0.9368, Redução=23.5%, Ants avaliadas=1
+  Ant 22: F1=0.7679, Acc=0.9354, Redução=23.4%
+Iter 22: F1=0.7679, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+  Ant 53: F1=0.7681, Acc=0.9351, Redução=23.5%
+Iter 23: F1=0.7681, Acc=0.9368, Redução=23.5%, Ants avaliadas=1
+  Ant 48: F1=0.7677, Acc=0.9351, Redução=23.5%
+Iter 24: F1=0.7677, Acc=0.9368, Redução=23.5%, Ants avaliadas=1
+  Ant 52: F1=0.7677, Acc=0.9352, Redução=23.6%
+Iter 25: F1=0.7677, Acc=0.9368, Redução=23.6%, Ants avaliadas=1
+  Ant 22: F1=0.7650, Acc=0.9346, Redução=23.7%
+Iter 26: F1=0.7650, Acc=0.9368, Redução=23.7%, Ants avaliadas=1
+  Ant 56: F1=0.7676, Acc=0.9352, Redução=23.7%
+Iter 27: F1=0.7676, Acc=0.9368, Redução=23.7%, Ants avaliadas=1
+  Ant 0: F1=0.7691, Acc=0.9357, Redução=23.8%
+Iter 28: F1=0.7691, Acc=0.9368, Redução=23.8%, Ants avaliadas=1
+  Ant 61: F1=0.7659, Acc=0.9349, Redução=23.8%
+Iter 29: F1=0.7659, Acc=0.9368, Redução=23.8%, Ants avaliadas=1
+  Ant 17: F1=0.7636, Acc=0.9343, Redução=24.0%
+Iter 30: F1=0.7636, Acc=0.9368, Redução=24.0%, Ants avaliadas=1
+  Ant 20: F1=0.7650, Acc=0.9345, Redução=24.0%
+Iter 31: F1=0.7650, Acc=0.9368, Redução=24.0%, Ants avaliadas=1
+  Ant 28: F1=0.7624, Acc=0.9337, Redução=24.2%
+Iter 32: F1=0.7624, Acc=0.9368, Redução=24.2%, Ants avaliadas=1
+  Ant 9: F1=0.7658, Acc=0.9345, Redução=24.3%
+Iter 33: F1=0.7658, Acc=0.9368, Redução=24.3%, Ants avaliadas=1
+  Ant 31: F1=0.7618, Acc=0.9339, Redução=24.3%
+Iter 34: F1=0.7618, Acc=0.9368, Redução=24.3%, Ants avaliadas=1
+  Ant 7: F1=0.7622, Acc=0.9338, Redução=24.5%
+Iter 35: F1=0.7622, Acc=0.9368, Redução=24.5%, Ants avaliadas=1
+  Ant 7: F1=0.7592, Acc=0.9331, Redução=24.7%
+Iter 36: F1=0.7592, Acc=0.9368, Redução=24.7%, Ants avaliadas=1
+  Ant 12: F1=0.7604, Acc=0.9331, Redução=24.8%
+Iter 37: F1=0.7604, Acc=0.9368, Redução=24.8%, Ants avaliadas=1
+  Ant 0: F1=0.7577, Acc=0.9328, Redução=25.0%
+Iter 38: F1=0.7577, Acc=0.9368, Redução=25.0%, Ants avaliadas=1
+  Ant 4: F1=0.7550, Acc=0.9318, Redução=25.2%
+Iter 39: F1=0.7550, Acc=0.9368, Redução=25.2%, Ants avaliadas=1
+  Ant 47: F1=0.7535, Acc=0.9311, Redução=25.4%
+Iter 40: F1=0.7535, Acc=0.9368, Redução=25.4%, Ants avaliadas=1
+  Ant 27: F1=0.7528, Acc=0.9310, Redução=25.6%
+Iter 41: F1=0.7528, Acc=0.9368, Redução=25.6%, Ants avaliadas=1
+  Ant 42: F1=0.7519, Acc=0.9313, Redução=25.9%
+Iter 42: F1=0.7519, Acc=0.9368, Redução=25.9%, Ants avaliadas=1
+  Ant 60: F1=0.7505, Acc=0.9308, Redução=26.1%
+Iter 43: F1=0.7505, Acc=0.9368, Redução=26.1%, Ants avaliadas=1
+  Ant 17: F1=0.7443, Acc=0.9290, Redução=26.5%
+Iter 44: F1=0.7443, Acc=0.9368, Redução=26.5%, Ants avaliadas=1
+  Ant 44: F1=0.7446, Acc=0.9286, Redução=26.8%
+Iter 45: F1=0.7446, Acc=0.9368, Redução=26.8%, Ants avaliadas=1
+  Ant 41: F1=0.7406, Acc=0.9275, Redução=27.1%
+Iter 46: F1=0.7406, Acc=0.9368, Redução=27.1%, Ants avaliadas=1
+  Ant 33: F1=0.7367, Acc=0.9268, Redução=27.5%
+Iter 47: F1=0.7367, Acc=0.9368, Redução=27.5%, Ants avaliadas=1
+  Ant 46: F1=0.7332, Acc=0.9258, Redução=27.9%
+Iter 48: F1=0.7332, Acc=0.9368, Redução=27.9%, Ants avaliadas=1
+  Ant 16: F1=0.7312, Acc=0.9248, Redução=28.3%
+Iter 49: F1=0.7312, Acc=0.9368, Redução=28.3%, Ants avaliadas=1
+  Ant 29: F1=0.7255, Acc=0.9235, Redução=28.9%
+Iter 50: F1=0.7255, Acc=0.9368, Redução=28.9%, Ants avaliadas=1
+  Ant 38: F1=0.7235, Acc=0.9232, Redução=29.2%
+Iter 51: F1=0.7235, Acc=0.9368, Redução=29.2%, Ants avaliadas=1
+  Ant 4: F1=0.7240, Acc=0.9231, Redução=29.8%
+Iter 52: F1=0.7240, Acc=0.9368, Redução=29.8%, Ants avaliadas=1
+  Ant 34: F1=0.7174, Acc=0.9214, Redução=30.3%
+Iter 53: F1=0.7174, Acc=0.9368, Redução=30.3%, Ants avaliadas=1
+  Ant 28: F1=0.7107, Acc=0.9197, Redução=30.9%
+Iter 54: F1=0.7107, Acc=0.9368, Redução=30.9%, Ants avaliadas=1
+  Ant 38: F1=0.7079, Acc=0.9187, Redução=31.5%
+Iter 55: F1=0.7079, Acc=0.9368, Redução=31.5%, Ants avaliadas=1
+  Ant 42: F1=0.7015, Acc=0.9167, Redução=32.2%
+Iter 56: F1=0.7015, Acc=0.9368, Redução=32.2%, Ants avaliadas=1
+  Ant 22: F1=0.6975, Acc=0.9156, Redução=32.8%
+Iter 57: F1=0.6975, Acc=0.9368, Redução=32.8%, Ants avaliadas=1
+  Ant 49: F1=0.6938, Acc=0.9152, Redução=33.5%
+Iter 58: F1=0.6938, Acc=0.9368, Redução=33.5%, Ants avaliadas=1
+  Ant 46: F1=0.6871, Acc=0.9125, Redução=34.2%
+Iter 59: F1=0.6871, Acc=0.9368, Redução=34.2%, Ants avaliadas=1
+  Ant 57: F1=0.6803, Acc=0.9111, Redução=34.9%
+Iter 60: F1=0.6803, Acc=0.9368, Redução=34.9%, Ants avaliadas=1
+  Ant 44: F1=0.6760, Acc=0.9098, Redução=35.7%
+Iter 61: F1=0.6760, Acc=0.9368, Redução=35.7%, Ants avaliadas=1
+  Ant 17: F1=0.6716, Acc=0.9088, Redução=36.5%
+Iter 62: F1=0.6716, Acc=0.9368, Redução=36.5%, Ants avaliadas=1
+  Ant 18: F1=0.6654, Acc=0.9076, Redução=37.1%
+Iter 63: F1=0.6654, Acc=0.9368, Redução=37.1%, Ants avaliadas=1
+  Ant 44: F1=0.6601, Acc=0.9052, Redução=38.0%
+Iter 64: F1=0.6601, Acc=0.9368, Redução=38.0%, Ants avaliadas=1
+  Ant 35: F1=0.6506, Acc=0.9034, Redução=38.8%
+Iter 65: F1=0.6506, Acc=0.9368, Redução=38.8%, Ants avaliadas=1
+  Ant 56: F1=0.6464, Acc=0.9018, Redução=39.5%
+Iter 66: F1=0.6464, Acc=0.9368, Redução=39.5%, Ants avaliadas=1
+  Ant 2: F1=0.6420, Acc=0.9004, Redução=40.4%
+Iter 67: F1=0.6420, Acc=0.9368, Redução=40.4%, Ants avaliadas=1
+  Ant 60: F1=0.6324, Acc=0.8975, Redução=41.2%
+Iter 68: F1=0.6324, Acc=0.9368, Redução=41.2%, Ants avaliadas=1
+  Ant 39: F1=0.6273, Acc=0.8969, Redução=42.1%
+Iter 69: F1=0.6273, Acc=0.9368, Redução=42.1%, Ants avaliadas=1
+  Ant 54: F1=0.6217, Acc=0.8941, Redução=42.9%
+Iter 70: F1=0.6217, Acc=0.9368, Redução=42.9%, Ants avaliadas=1
+  Ant 53: F1=0.6195, Acc=0.8936, Redução=43.6%
+Iter 71: F1=0.6195, Acc=0.9368, Redução=43.6%, Ants avaliadas=1
+  Ant 47: F1=0.6121, Acc=0.8923, Redução=44.4%
+Iter 72: F1=0.6121, Acc=0.9368, Redução=44.4%, Ants avaliadas=1
+  Ant 5: F1=0.6094, Acc=0.8918, Redução=45.2%
+Iter 73: F1=0.6094, Acc=0.9368, Redução=45.2%, Ants avaliadas=1
+  Ant 7: F1=0.5997, Acc=0.8882, Redução=46.1%
+Iter 74: F1=0.5997, Acc=0.9368, Redução=46.1%, Ants avaliadas=1
+  Ant 50: F1=0.5973, Acc=0.8881, Redução=46.9%
+Iter 75: F1=0.5973, Acc=0.9368, Redução=46.9%, Ants avaliadas=1
+  Ant 31: F1=0.5909, Acc=0.8854, Redução=47.7%
+Iter 76: F1=0.5909, Acc=0.9368, Redução=47.7%, Ants avaliadas=1
+  Ant 53: F1=0.5822, Acc=0.8844, Redução=48.5%
+Iter 77: F1=0.5822, Acc=0.9368, Redução=48.5%, Ants avaliadas=1
+  Ant 19: F1=0.5825, Acc=0.8838, Redução=49.3%
+Iter 78: F1=0.5825, Acc=0.9368, Redução=49.3%, Ants avaliadas=1
+  Ant 20: F1=0.5738, Acc=0.8815, Redução=50.0%
+Iter 79: F1=0.5738, Acc=0.9368, Redução=50.0%, Ants avaliadas=1
+  Ant 11: F1=0.5670, Acc=0.8808, Redução=50.7%
+Iter 80: F1=0.5670, Acc=0.9368, Redução=50.7%, Ants avaliadas=1
+  Ant 28: F1=0.5624, Acc=0.8782, Redução=51.5%
+Iter 81: F1=0.5624, Acc=0.9368, Redução=51.5%, Ants avaliadas=1
+  Ant 46: F1=0.5606, Acc=0.8781, Redução=52.2%
+Iter 82: F1=0.5606, Acc=0.9368, Redução=52.2%, Ants avaliadas=1
+  Ant 49: F1=0.5564, Acc=0.8769, Redução=52.8%
+Iter 83: F1=0.5564, Acc=0.9368, Redução=52.8%, Ants avaliadas=1
+  Ant 39: F1=0.5481, Acc=0.8738, Redução=53.5%
+Iter 84: F1=0.5481, Acc=0.9368, Redução=53.5%, Ants avaliadas=1
+  Ant 15: F1=0.5418, Acc=0.8732, Redução=54.3%
+Iter 85: F1=0.5418, Acc=0.9368, Redução=54.3%, Ants avaliadas=1
+  Ant 5: F1=0.5419, Acc=0.8720, Redução=55.0%
+Iter 86: F1=0.5419, Acc=0.9368, Redução=55.0%, Ants avaliadas=1
+  Ant 32: F1=0.5363, Acc=0.8697, Redução=55.6%
+Iter 87: F1=0.5363, Acc=0.9368, Redução=55.6%, Ants avaliadas=1
+  Ant 13: F1=0.5310, Acc=0.8704, Redução=56.2%
+Iter 88: F1=0.5310, Acc=0.9368, Redução=56.2%, Ants avaliadas=1
+  Ant 18: F1=0.5293, Acc=0.8687, Redução=56.8%
+Iter 89: F1=0.5293, Acc=0.9368, Redução=56.8%, Ants avaliadas=1
+  Ant 1: F1=0.5207, Acc=0.8675, Redução=57.5%
+Iter 90: F1=0.5207, Acc=0.9368, Redução=57.5%, Ants avaliadas=1
+  Ant 33: F1=0.5153, Acc=0.8668, Redução=58.0%
+Iter 91: F1=0.5153, Acc=0.9368, Redução=58.0%, Ants avaliadas=1
+  Ant 56: F1=0.5204, Acc=0.8664, Redução=58.6%
+Iter 92: F1=0.5204, Acc=0.9368, Redução=58.6%, Ants avaliadas=1
+  Ant 54: F1=0.5129, Acc=0.8642, Redução=59.3%
+Iter 93: F1=0.5129, Acc=0.9368, Redução=59.3%, Ants avaliadas=1
+  Ant 35: F1=0.5047, Acc=0.8637, Redução=59.8%
+Iter 94: F1=0.5047, Acc=0.9368, Redução=59.8%, Ants avaliadas=1
+  Ant 54: F1=0.5070, Acc=0.8615, Redução=60.4%
+Iter 95: F1=0.5070, Acc=0.9368, Redução=60.4%, Ants avaliadas=1
+  Ant 24: F1=0.5028, Acc=0.8606, Redução=60.9%
+Iter 96: F1=0.5028, Acc=0.9368, Redução=60.9%, Ants avaliadas=1
+  Ant 59: F1=0.4999, Acc=0.8587, Redução=61.4%
+Iter 97: F1=0.4999, Acc=0.9368, Redução=61.4%, Ants avaliadas=1
+  Ant 29: F1=0.4988, Acc=0.8607, Redução=62.0%
+Iter 98: F1=0.4988, Acc=0.9368, Redução=62.0%, Ants avaliadas=1
+  Ant 59: F1=0.4839, Acc=0.8608, Redução=62.5%
+Iter 99: F1=0.4839, Acc=0.9368, Redução=62.5%, Ants avaliadas=1
+  Ant 33: F1=0.4863, Acc=0.8556, Redução=63.1%
+Iter 100: F1=0.4863, Acc=0.9368, Redução=63.1%, Ants avaliadas=1
+Dataset carregado: 253680 instancias, 21 features
+Tempo de leitura:  402.009 ms
+Threads OpenMP:    1
+Parametros ACO:    ants=64, iter=100, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 195207/253680 instancias (reducao ~23.0499%)
+Acuracia: 0.936798
+Precisao: 0.772991
+Recall: 0.773581
+F1-Score: 0.773286
+Iteracoes executadas: 100/100
+Tempo ACO: 2.67882e+07 ms
+Tempo eval (1-NN): 2.6231e+07 ms
+CPU eval throughput: 9.96525 GFLOPS
+Threads: 1
+Eval strategy: top-1 formigas/iteracao (auto-detectado para N=253680)
