@@ -35,7 +35,8 @@ threads e tipo de escalonador, e (b) o desempenho CUDA por block size — com ex
 
 | Decisão | Escolha |
 |---|---|
-| Fidelidade | **Modo cheio**: `--ants 64 --iter 100`, sem amostragem |
+| Fidelidade | **Modo cheio**: `--ants 64 --iter 100` (teto), sem amostragem |
+| Early stopping | **Ativado**: para após **20 iterações sem melhora** (`--patience 20`) |
 | Threads (OpenMP) | `{2, 4, 8, 16, 32}` (1-thread **removido** — já medido) |
 | Escalonadores | `{static, dynamic}` (`guided` **removido** — não estudado) |
 | 1-thread (T1) | **Não roda**; reaproveita medição existente do log remoto |
@@ -57,9 +58,30 @@ Como o eval 1-NN domina e usa `schedule(runtime)`, variar `OMP_SCHEDULE` entre `
 `dynamic` mede um efeito **real**. Os poucos laços fixos são pré-cálculo de peso menor; isso
 será **documentado no relatório** para não superinterpretar a diferença observada.
 
-**Nenhuma alteração de código-fonte é necessária** para este experimento.
+**Para o experimento de escalonador, nenhuma alteração de código é necessária.** (O early
+stopping — seção 3.5 — exige uma mudança pequena e contida.)
 
-## 4. Baseline T1 (reaproveitado, não re-executado)
+## 3.5 Early stopping (mudança de código)
+
+O early stopping **já existe implementado** nos dois binários, porém **comentado** de propósito:
+
+- `src/openmp/aco_omp.cpp:407-414` — bloco `/* ... */`; `config.patience` default 10; **sem flag CLI**
+- `src/cuda/main.cu:518-524` — bloco `/* ... */`; `patience = 10` hardcoded
+
+**Mudança planejada (contida, nos dois binários):**
+
+1. Descomentar o bloco de early stop.
+2. Adicionar a flag CLI **`--patience N`**, com **default `0` = desligado**. Isso preserva a
+   reprodutibilidade dos EP03/EP04 antigos (que rodaram sem early stop) — o comportamento só muda
+   quando `--patience > 0` é passado explicitamente.
+3. Gatear o `break` com `if (config.patience > 0 && no_improve >= config.patience)`.
+4. Recompilar (`make all`). O grid passa `--patience 20`.
+
+Critério "sem melhora": `no_improve` zera quando o F1 global melhora e incrementa caso contrário
+(lógica já presente). Para após 20 iterações consecutivas sem melhora. O binário já imprime
+`Iteracoes executadas: K/100` e `(early stop)` quando para antes do teto.
+
+## 4. Baseline T1 (reaproveitado do log, não re-executado)
 
 Do `results_remote/hpc_raw_runs.log` (CDC, 100 iter, 64 formigas):
 
@@ -68,8 +90,18 @@ Do `results_remote/hpc_raw_runs.log` (CDC, 100 iter, 64 formigas):
 | OpenMP 1t `static` | 2.6451e7 (~7,35h) | 2.58922e7 | 10.0956 | 0.773286 | 0.936798 | 23.05% |
 | OpenMP 1t `dynamic` | 2.67882e7 (~7,44h) | 2.6231e7 | 9.96525 | 0.773286 | 0.936798 | 23.05% |
 
-T1 por escalonador será o valor da linha correspondente (a `guided`, removida, não é necessária).
-Speedup reportado como `T1_sched / Tp_sched`.
+**Comparabilidade com early stop.** Os runs novos param em `K ≤ 100` iterações; o T1 logado rodou
+100/100. Como o custo por iteração é ~constante e o ACO é **determinístico** (mesma trajetória em
+toda config), o baseline é derivado **do próprio log**, sem re-rodar 1-thread:
+
+- **Tempo por iteração:** `T1_iter = tempo_aco_ms(T1) / 100`.
+- **K efetivo do T1:** lido da trajetória logada (`Iter i: F1=...`) — última iteração com melhora de
+  F1 **+ 20** (paciência). Os runs novos param nesse mesmo K (determinismo).
+- **T1 efetivo:** `T1_efetivo = T1_iter × K`.
+- **Speedup:** `speedup_sched = T1_efetivo_sched / Tp_sched` (T1 de `static` e `dynamic` já medidos;
+  `guided` removido, não é necessário).
+
+Um script auxiliar de parsing extrai `T1_iter` e `K` do log remoto e injeta no relatório.
 
 ## 5. Arquitetura: script novo dedicado
 
@@ -85,20 +117,23 @@ reprodutibilidade daqueles. O script novo é focado, resumível e sem baggage.
 2. CUDA primeiro (também valida N grande na GPU — hipótese OOM/watchdog):
      para bs em {32,64,128,256,512,1024}:
         se (modo=CUDA, block=bs) já no CSV → pula (resume)
-        roda ./build/aco_cuda <ds> <target> --ants 64 --iter 100 --block-size bs
+        roda ./build/aco_cuda <ds> <target> --ants 64 --iter 100 --patience 20 --block-size bs
         parseia métricas; grava 1 linha no CSV + bloco no log
         se falhar → status=ERRO, registra stderr, segue
 3. OpenMP depois:
      para sched em {static,dynamic}:
        para t em {2,4,8,16,32}:
           se (modo=OpenMP, threads=t, sched) já no CSV → pula (resume)
-          OMP_NUM_THREADS=t OMP_SCHEDULE=sched ./build/aco_omp <ds> <target> --ants 64 --iter 100
+          OMP_NUM_THREADS=t OMP_SCHEDULE=sched ./build/aco_omp <ds> <target> --ants 64 --iter 100 --patience 20
           parseia métricas; calcula speedup vs T1[sched]; grava linha + bloco
 4. Gera/atualiza results/cdc_grid_report.md a partir do CSV
 ```
 
 ### 5.2 Robustez
 
+- **Auto-encadeamento:** loop sequencial único — ao detectar o fim de um run (saída do binário +
+  parse bem-sucedido), o próximo config é disparado automaticamente, sem intervenção. CUDA inteiro
+  primeiro, depois toda a grade OpenMP.
 - **Detached:** usuário invoca com `nohup ... &` (sobrevive a desconexão SSH).
 - **Incremental:** CSV e log bruto recebem `append` **após cada run** (não no fim).
 - **Resumível:** no início, lê o CSV existente; pula qualquer config (chave
@@ -129,16 +164,22 @@ Reaproveita a lógica já validada em `run_hpc_experiment.sh`, que trata as duas
 
 ## 7. Estimativa de tempo
 
-Âncora medida: OpenMP 1t = ~7,35h. Speedups do EP03 no CDC (2t≈1.84×, 4t≈3.2×, 8t≈4.45×,
-16t≈5.19×, 32t≈plateau):
+Âncora medida: OpenMP 1t = ~7,35h para 100 iter. Speedups do EP03 no CDC (2t≈1.84×, 4t≈3.2×,
+8t≈4.45×, 16t≈5.19×, 32t≈plateau).
+
+**Teto (se nunca houver early stop, K=100):**
 
 ```
 CUDA (6 block sizes):     ~30-90 min   (+ valida GPU no N grande)
 OpenMP static  {2..32}:   ~10,8h       (4,0 + 2,3 + 1,7 + 1,4 + 1,4)
 OpenMP dynamic {2..32}:   ~10,8h
 ─────────────────────────────────────
-TOTAL:                    ≈ 22h  ≈ ~1 dia
+TETO:                     ≈ 22h
 ```
+
+**Esperado com early stop:** o tempo escala por `K/100`. Se a convergência cair em ~30-50 iter
+(`--patience 20`), o total fica em **~7-11h**. O K real só se conhece ao rodar; o teto de 22h é o
+pior caso (sem nenhuma parada antecipada).
 
 ## 8. Como executar (usuário, no remoto)
 
@@ -171,3 +212,5 @@ scp -r aluno@100.95.177.8:~/aco-selection-parallel/results/cdc_grid_* ./results/
 3. `cdc_grid_report.md` apresenta as curvas de speedup por escalonador e a tabela CUDA por
    block size, com a ressalva da seção 3.
 4. CUDA confirmado funcionando (ou falha diagnosticada) no N grande logo no início.
+5. Early stop funcionando: binários param em `K < 100` quando há 20 iterações sem melhora, e
+   `iteracoes` (K efetivo) é registrado no CSV de cada run.
