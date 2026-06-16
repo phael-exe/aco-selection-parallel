@@ -35,7 +35,7 @@ double* knn_1nn_predict(
     double* Y_pred = new double[N_test];
 
     // Para cada instância de teste (paralelo: cada j é independente)
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(runtime)
     for (size_t j = 0; j < N_test; ++j) {
         const double* x_test_j = X_test + j * F;
 

@@ -86,7 +86,7 @@ static void compute_visibility_precomputed(const double* distances, size_t N, do
 static void compute_visibility_on_the_fly(const double* X, size_t N, size_t F, double* visibility) {
     // Calcula a visibilidade exata baseada na distância média par-a-par
     // de forma paralela e sem alocação O(N^2) de memória.
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(runtime)
     for (size_t i = 0; i < N; ++i) {
         double sum = 0.0;
         const double* xi = X + i * F;
@@ -259,6 +259,8 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
     result.best_fitness = 0.0;
     result.iterations = 0;
     result.time_seconds = 0.0;
+    result.eval_time_ms = 0.0;
+    result.total_eval_flops = 0;
 
     // Detectar modo
     bool precomputed = (N <= DISTANCE_THRESHOLD);
@@ -318,7 +320,7 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         // Embaraçosamente paralelo: cada formiga escreve apenas em sua própria
         // fatia colony[k*N .. k*N+N) e lê select_prob (read-only). RNG semeado
         // por (iter,k) → resultado independente do escalonamento de threads.
-        #pragma omp parallel for schedule(dynamic)
+        #pragma omp parallel for schedule(runtime)
         for (size_t k = 0; k < config.K; ++k) {
             std::mt19937 ant_rng(BASE_SEED
                 + static_cast<uint32_t>(iter) * static_cast<uint32_t>(config.K)
@@ -328,7 +330,7 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         }
 
         // Depositar feromônio de todas as formigas (atomic dentro de deposit_pheromone)
-        #pragma omp parallel for schedule(dynamic)
+        #pragma omp parallel for schedule(runtime)
         for (size_t k = 0; k < config.K; ++k) {
             deposit_pheromone(pheromone, N, colony + k * N, config.Q);
         }
@@ -363,7 +365,13 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         for (size_t i = 0; i < eval_count; ++i) {
             size_t k = ant_scores[i].first;
             int* ant_solution = colony + k * N;
+            
+            auto t0 = std::chrono::high_resolution_clock::now();
             QualityMetrics metrics = evaluate_solution(ant_solution, X, Y, N, F);
+            auto t1 = std::chrono::high_resolution_clock::now();
+            
+            result.eval_time_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
+            result.total_eval_flops += (long long)N * metrics.selected_count * 3 * F;
 
             if (metrics.f1_score > best_f1_this_iter) {
                 best_f1_this_iter = metrics.f1_score;
@@ -396,12 +404,14 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         fprintf(stderr, "Iter %zu: F1=%.4f, Acc=%.4f, Redução=%.1f%%, Ants avaliadas=%zu\n",
             iter + 1, current_fitness, result.accuracy, best_metrics_this_iter.reduction_rate * 100.0, eval_count);
 
-        // Early stopping
+        // Early stopping desativado a pedido do usuário
+        /*
         if (no_improve_count >= config.patience) {
             fprintf(stderr, "Early stopping: sem melhoria por %zu iterações\n", config.patience);
             result.iterations = iter + 1;
             break;
         }
+        */
 
         result.iterations = iter + 1;
     }

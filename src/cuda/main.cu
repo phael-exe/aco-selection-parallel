@@ -290,6 +290,7 @@ int main(int argc, char** argv) {
     double alpha            = 1.0;
     double beta             = 1.0;
     int    eval_top_k_exp   = 0;   // 0 = auto-detectar
+    int    block_size       = 256;
 
     for (int i = 3; i + 1 < argc; i += 2) {
         if      (!strcmp(argv[i], "--ants"))       num_ants       = atoi(argv[i+1]);
@@ -299,6 +300,7 @@ int main(int argc, char** argv) {
         else if (!strcmp(argv[i], "--alpha"))      alpha          = atof(argv[i+1]);
         else if (!strcmp(argv[i], "--beta"))       beta           = atof(argv[i+1]);
         else if (!strcmp(argv[i], "--eval-top-k")) eval_top_k_exp = atoi(argv[i+1]);
+        else if (!strcmp(argv[i], "--block-size")) block_size     = atoi(argv[i+1]);
         else cerr << "Aviso: argumento desconhecido '" << argv[i] << "' ignorado\n";
     }
 
@@ -346,7 +348,7 @@ int main(int argc, char** argv) {
     // vis[i] = 1 / (1 + avg_dist[i])
     double* d_avg_dist;
     CUDA_CHECK(cudaMalloc(&d_avg_dist, N * sizeof(double)));
-    avg_distance_kernel<<<(N + 255) / 256, 256>>>(buf.d_X, d_avg_dist, N, F);
+    avg_distance_kernel<<<(N + block_size - 1) / block_size, block_size>>>(buf.d_X, d_avg_dist, N, F);
     CUDA_CHECK(cudaDeviceSynchronize());
 
     vector<double> h_avg(N), h_vis(N);
@@ -364,8 +366,8 @@ int main(int argc, char** argv) {
     curandState* d_rng;
     CUDA_CHECK(cudaMalloc(&d_rng, (size_t)K * N * sizeof(curandState)));
     {
-        int grid_rng = (K * N + 255) / 256;
-        init_curand_kernel<<<grid_rng, 256>>>(d_rng, 12345ULL, K * N);
+        int grid_rng = (K * N + block_size - 1) / block_size;
+        init_curand_kernel<<<grid_rng, block_size>>>(d_rng, 12345ULL, K * N);
         CUDA_CHECK(cudaDeviceSynchronize());
     }
 
@@ -382,13 +384,14 @@ int main(int argc, char** argv) {
     int    no_improve    = 0;
     int    patience      = 10;
 
-    int grid_ants = (K * N + 255) / 256;
-    int grid_phe  = (N + 255) / 256;
-    int grid_knn  = (N + 255) / 256;
+    int grid_ants = (K * N + block_size - 1) / block_size;
+    int grid_phe  = (N + block_size - 1) / block_size;
+    int grid_knn  = (N + block_size - 1) / block_size;
 
     auto t_aco0 = chrono::high_resolution_clock::now();
     double gpu_compute_ms = 0.0;
     double gpu_eval_ms    = 0.0;
+    long long total_eval_flops = 0;
 
     for (int iter = 0; iter < max_iter; ++iter) {
         // -- 1. select_prob na CPU: τ^α·η^β normalizado --
@@ -421,15 +424,15 @@ int main(int argc, char** argv) {
         CUDA_CHECK(cudaEventCreate(&ev1));
         CUDA_CHECK(cudaEventRecord(ev0));
 
-        ant_construction_kernel<<<grid_ants, 256>>>(
+        ant_construction_kernel<<<grid_ants, block_size>>>(
             buf.d_select_prob, buf.d_colony, buf.d_selected_count, d_rng, N, K);
         CUDA_CHECK(cudaDeviceSynchronize());
 
-        deposit_kernel<<<grid_ants, 256>>>(
+        deposit_kernel<<<grid_ants, block_size>>>(
             buf.d_colony, buf.d_selected_count, buf.d_deposit, N, K, Q);
         CUDA_CHECK(cudaDeviceSynchronize());
 
-        apply_pheromone_kernel<<<grid_phe, 256>>>(
+        apply_pheromone_kernel<<<grid_phe, block_size>>>(
             buf.d_pheromone, buf.d_deposit, N, evap_rate);
         CUDA_CHECK(cudaDeviceSynchronize());
 
@@ -463,7 +466,7 @@ int main(int argc, char** argv) {
             CUDA_CHECK(cudaEventRecord(ek0));
 
             // knn_1nn_kernel: N threads, cada um encontra NN no subconjunto selecionado
-            knn_1nn_kernel<<<grid_knn, 256>>>(
+            knn_1nn_kernel<<<grid_knn, block_size>>>(
                 buf.d_X, buf.d_Y,
                 buf.d_colony + (long long)k * N,
                 buf.d_predictions,
@@ -474,6 +477,7 @@ int main(int argc, char** argv) {
             CUDA_CHECK(cudaEventSynchronize(ek1));
             CUDA_CHECK(cudaEventElapsedTime(&ms_knn, ek0, ek1));
             gpu_eval_ms += ms_knn;
+            total_eval_flops += (long long)N * scores[ei].second * 3 * F;
             CUDA_CHECK(cudaEventDestroy(ek0));
             CUDA_CHECK(cudaEventDestroy(ek1));
 
@@ -511,10 +515,13 @@ int main(int argc, char** argv) {
             eval_count);
 
         iters_done = iter + 1;
+        // -- Early stopping desativado a pedido do usuário --
+        /*
         if (no_improve >= patience) {
             fprintf(stderr, "Early stopping: sem melhoria por %d iteracoes\n", patience);
             break;
         }
+        */
     }
 
     auto t_aco1 = chrono::high_resolution_clock::now();
@@ -534,6 +541,8 @@ int main(int argc, char** argv) {
     cout << "Tempo ACO: "       << aco_ms        << " ms\n";
     cout << "GPU compute: "     << gpu_compute_ms << " ms\n";
     cout << "GPU eval (1-NN): " << gpu_eval_ms    << " ms\n";
+    double eval_gflops = (gpu_eval_ms > 0) ? (double)total_eval_flops / (gpu_eval_ms * 1e6) : 0.0;
+    cout << "GPU eval throughput: " << eval_gflops << " GFLOPS\n";
     cout << "Eval strategy: top-" << eval_top_k << " formigas/iteracao (";
     if (eval_top_k_exp > 0) cout << "explicitamente configurado)\n";
     else cout << "auto-detectado para N=" << N << ")\n";

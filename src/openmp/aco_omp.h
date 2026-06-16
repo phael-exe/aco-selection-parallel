@@ -24,6 +24,8 @@ struct ACOResult {
     double  recall;         // recall da melhor solução
     size_t  iterations;     // iterações executadas
     double  time_seconds;   // tempo total
+    double  eval_time_ms;   // tempo total das avaliações 1-NN (ms)
+    long long total_eval_flops; // total de FLOPS nas avaliações 1-NN
 };
 
 // Função principal: executa o algoritmo ACO paralelizado com OpenMP

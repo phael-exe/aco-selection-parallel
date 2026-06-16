@@ -226,6 +226,8 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
     result.best_fitness = 0.0;
     result.iterations = 0;
     result.time_seconds = 0.0;
+    result.eval_time_ms = 0.0;
+    result.total_eval_flops = 0;
     
     // Inicializar aleatoriedade
     srand(static_cast<unsigned>(time(nullptr)));
@@ -323,8 +325,15 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         for (size_t i = 0; i < eval_count; ++i) {
             size_t k = ant_scores[i].first;
             int* ant_solution = colony + k * N;
-            QualityMetrics metrics = evaluate_solution(ant_solution, X, Y, N, F, config.eval_sample);
             
+            auto t0 = std::chrono::high_resolution_clock::now();
+            QualityMetrics metrics = evaluate_solution(ant_solution, X, Y, N, F, config.eval_sample);
+            auto t1 = std::chrono::high_resolution_clock::now();
+            
+            result.eval_time_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
+            size_t N_test = (config.eval_sample > 0) ? config.eval_sample : N;
+            result.total_eval_flops += (long long)N_test * metrics.selected_count * 3 * F;
+
             if (metrics.f1_score > best_f1_this_iter) {
                 best_f1_this_iter = metrics.f1_score;
                 best_ant_idx = k;
@@ -358,12 +367,14 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         fprintf(stderr, "Iter %zu: F1=%.4f, Acc=%.4f, Redução=%.1f%%, Ants avaliadas=%zu, Tempo=%.0f ms\n",
             iter + 1, current_fitness, result.accuracy, best_metrics_this_iter.reduction_rate * 100.0, eval_count, iter_ms);
         
-        // Early stopping
+        // Early stopping desativado a pedido do usuário
+        /*
         if (no_improve_count >= config.patience) {
             fprintf(stderr, "Early stopping: sem melhoria por %zu iterações\n", config.patience);
             result.iterations = iter + 1;
             break;
         }
+        */
         
         result.iterations = iter + 1;
     }

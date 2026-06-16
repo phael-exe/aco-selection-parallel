@@ -133,6 +133,11 @@ int main(int argc, char* argv[]) {
         std::cout << "\n";
     }
     std::cout << "Tempo ACO: " << aco_time_ms << " ms\n";
+    std::cout << "Tempo eval (1-NN): " << result.eval_time_ms << " ms\n";
+    {
+        double eval_gflops = (result.eval_time_ms > 0) ? (double)result.total_eval_flops / (result.eval_time_ms * 1e6) : 0.0;
+        std::cout << "CPU eval throughput: " << eval_gflops << " GFLOPS\n";
+    }
     std::cout << "Eval strategy: top-" << config.eval_top_k << " formigas/iteracao (";
     if (eval_top_k_explicit == 0) {
         std::cout << "auto-detectado para N=" << ds.N << ")\n";

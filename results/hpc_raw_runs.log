@@ -1,0 +1,518 @@
+=== ACO HPC Experiment Run - Mon Jun 15 09:07:06 PM -03 2026 ===
+  Ant 1: F1=0.9101, Acc=0.9362, Redução=21.1%
+  Ant 0: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9101, Acc=0.9362, Redução=21.1%, Ants avaliadas=2, Tempo=2 ms
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.38228 ms
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO ===
+Melhor solucao: 606/768 instancias (reducao ~21.0938%)
+Acuracia: 0.936198
+Precisao: 0.895307
+Recall: 0.925373
+F1-Score: 0.910092
+Iteracoes executadas: 1/1
+Tempo ACO: 5.9245 ms
+Tempo eval (1-NN): 2.11378 ms
+CPU eval throughput: 10.3941 GFLOPS
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.54602 ms
+Threads OpenMP:    1
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 8.4771 ms
+Tempo eval (1-NN): 3.53822 ms
+CPU eval throughput: 6.24086 GFLOPS
+Threads: 1
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.01641 ms
+Threads OpenMP:    1
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 6.05571 ms
+Tempo eval (1-NN): 2.0751 ms
+CPU eval throughput: 10.6412 GFLOPS
+Threads: 1
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  0.991842 ms
+Threads OpenMP:    1
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 7.18741 ms
+Tempo eval (1-NN): 3.46455 ms
+CPU eval throughput: 6.37357 GFLOPS
+Threads: 1
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.03975 ms
+Threads OpenMP:    2
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 6.74031 ms
+Tempo eval (1-NN): 2.07194 ms
+CPU eval throughput: 10.6574 GFLOPS
+Threads: 2
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.5025 ms
+Threads OpenMP:    2
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 5.75991 ms
+Tempo eval (1-NN): 1.69916 ms
+CPU eval throughput: 12.9956 GFLOPS
+Threads: 2
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.46941 ms
+Threads OpenMP:    2
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 7.17105 ms
+Tempo eval (1-NN): 2.06328 ms
+CPU eval throughput: 10.7021 GFLOPS
+Threads: 2
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.50605 ms
+Threads OpenMP:    4
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 5.6383 ms
+Tempo eval (1-NN): 1.38453 ms
+CPU eval throughput: 15.9488 GFLOPS
+Threads: 4
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.49269 ms
+Threads OpenMP:    4
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 5.86259 ms
+Tempo eval (1-NN): 1.00197 ms
+CPU eval throughput: 22.0381 GFLOPS
+Threads: 4
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.36794 ms
+Threads OpenMP:    4
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 5.68246 ms
+Tempo eval (1-NN): 1.19184 ms
+CPU eval throughput: 18.5273 GFLOPS
+Threads: 4
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.49693 ms
+Threads OpenMP:    8
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 6.29897 ms
+Tempo eval (1-NN): 1.85166 ms
+CPU eval throughput: 11.9252 GFLOPS
+Threads: 8
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.17035 ms
+Threads OpenMP:    8
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 4.98643 ms
+Tempo eval (1-NN): 0.473276 ms
+CPU eval throughput: 46.6568 GFLOPS
+Threads: 8
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.03711 ms
+Threads OpenMP:    8
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 4.7387 ms
+Tempo eval (1-NN): 0.9828 ms
+CPU eval throughput: 22.468 GFLOPS
+Threads: 8
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.01266 ms
+Threads OpenMP:    16
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 6.59963 ms
+Tempo eval (1-NN): 1.73327 ms
+CPU eval throughput: 12.7398 GFLOPS
+Threads: 16
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.66251 ms
+Threads OpenMP:    16
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 9.1485 ms
+Tempo eval (1-NN): 1.05284 ms
+CPU eval throughput: 20.9733 GFLOPS
+Threads: 16
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.45075 ms
+Threads OpenMP:    16
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 5.09184 ms
+Tempo eval (1-NN): 0.719731 ms
+CPU eval throughput: 30.6803 GFLOPS
+Threads: 16
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.00501 ms
+Threads OpenMP:    32
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 5.82732 ms
+Tempo eval (1-NN): 1.67216 ms
+CPU eval throughput: 13.2054 GFLOPS
+Threads: 32
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  0.911753 ms
+Threads OpenMP:    32
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 5.96054 ms
+Tempo eval (1-NN): 0.681537 ms
+CPU eval throughput: 32.3996 GFLOPS
+Threads: 32
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9031, Acc=0.9310, Redução=20.3%
+  Ant 1: F1=0.8593, Acc=0.9010, Redução=23.7%
+Iter 1: F1=0.9031, Acc=0.9310, Redução=20.3%, Ants avaliadas=2
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  0.936246 ms
+Threads OpenMP:    32
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 612/768 instancias (reducao ~20.3125%)
+Acuracia: 0.93099
+Precisao: 0.885305
+Recall: 0.921642
+F1-Score: 0.903108
+Iteracoes executadas: 1/1
+Tempo ACO: 5.69433 ms
+Tempo eval (1-NN): 0.589822 ms
+CPU eval throughput: 37.4376 GFLOPS
+Threads: 32
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9042 Acc=0.9310 Red=19.7%
+  Ant 1: F1=0.8889 Acc=0.9219 Red=21.9%
+Iter 1: F1=0.9042 Acc=0.9310 Red=19.7% GPU=0.04ms+0.78ms_knn (avaliadas=2)
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.02234 ms
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (CUDA) ===
+Melhor solucao: 617/768 instancias (reducao ~19.6615%)
+Acuracia: 0.93099
+Precisao: 0.877193
+Recall: 0.932836
+F1-Score: 0.904159
+Iteracoes executadas: 1/1
+Tempo ACO: 0.925519 ms
+GPU compute: 0.039936 ms
+GPU eval (1-NN): 0.777408 ms
+GPU eval throughput: 28.8545 GFLOPS
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9042 Acc=0.9310 Red=19.7%
+  Ant 1: F1=0.8889 Acc=0.9219 Red=21.9%
+Iter 1: F1=0.9042 Acc=0.9310 Red=19.7% GPU=0.04ms+0.78ms_knn (avaliadas=2)
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  0.652527 ms
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (CUDA) ===
+Melhor solucao: 617/768 instancias (reducao ~19.6615%)
+Acuracia: 0.93099
+Precisao: 0.877193
+Recall: 0.932836
+F1-Score: 0.904159
+Iteracoes executadas: 1/1
+Tempo ACO: 0.921628 ms
+GPU compute: 0.03808 ms
+GPU eval (1-NN): 0.783104 ms
+GPU eval throughput: 28.6447 GFLOPS
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9042 Acc=0.9310 Red=19.7%
+  Ant 1: F1=0.8889 Acc=0.9219 Red=21.9%
+Iter 1: F1=0.9042 Acc=0.9310 Red=19.7% GPU=0.04ms+0.95ms_knn (avaliadas=2)
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.04082 ms
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (CUDA) ===
+Melhor solucao: 617/768 instancias (reducao ~19.6615%)
+Acuracia: 0.93099
+Precisao: 0.877193
+Recall: 0.932836
+F1-Score: 0.904159
+Iteracoes executadas: 1/1
+Tempo ACO: 1.08837 ms
+GPU compute: 0.037888 ms
+GPU eval (1-NN): 0.950432 ms
+GPU eval throughput: 23.6016 GFLOPS
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9042 Acc=0.9310 Red=19.7%
+  Ant 1: F1=0.8889 Acc=0.9219 Red=21.9%
+Iter 1: F1=0.9042 Acc=0.9310 Red=19.7% GPU=0.04ms+1.54ms_knn (avaliadas=2)
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.03429 ms
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (CUDA) ===
+Melhor solucao: 617/768 instancias (reducao ~19.6615%)
+Acuracia: 0.93099
+Precisao: 0.877193
+Recall: 0.932836
+F1-Score: 0.904159
+Iteracoes executadas: 1/1
+Tempo ACO: 1.68825 ms
+GPU compute: 0.036864 ms
+GPU eval (1-NN): 1.53514 ms
+GPU eval throughput: 14.6122 GFLOPS
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9042 Acc=0.9310 Red=19.7%
+  Ant 1: F1=0.8889 Acc=0.9219 Red=21.9%
+Iter 1: F1=0.9042 Acc=0.9310 Red=19.7% GPU=0.04ms+2.77ms_knn (avaliadas=2)
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.06179 ms
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (CUDA) ===
+Melhor solucao: 617/768 instancias (reducao ~19.6615%)
+Acuracia: 0.93099
+Precisao: 0.877193
+Recall: 0.932836
+F1-Score: 0.904159
+Iteracoes executadas: 1/1
+Tempo ACO: 2.91048 ms
+GPU compute: 0.037952 ms
+GPU eval (1-NN): 2.76653 ms
+GPU eval throughput: 8.10827 GFLOPS
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
+  Ant 0: F1=0.9042 Acc=0.9310 Red=19.7%
+  Ant 1: F1=0.8889 Acc=0.9219 Red=21.9%
+Iter 1: F1=0.9042 Acc=0.9310 Red=19.7% GPU=0.04ms+4.14ms_knn (avaliadas=2)
+Dataset carregado: 768 instancias, 8 features
+Tempo de leitura:  1.02829 ms
+Parametros ACO:    ants=2, iter=1, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (CUDA) ===
+Melhor solucao: 617/768 instancias (reducao ~19.6615%)
+Acuracia: 0.93099
+Precisao: 0.877193
+Recall: 0.932836
+F1-Score: 0.904159
+Iteracoes executadas: 1/1
+Tempo ACO: 4.28746 ms
+GPU compute: 0.041984 ms
+GPU eval (1-NN): 4.14106 ms
+GPU eval throughput: 5.41691 GFLOPS
+Eval strategy: top-5 formigas/iteracao (auto-detectado para N=768)
