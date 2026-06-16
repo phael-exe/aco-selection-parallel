@@ -404,14 +404,12 @@ ACOResult run_aco(const double* X, const double* Y, size_t N, size_t F, ACOConfi
         fprintf(stderr, "Iter %zu: F1=%.4f, Acc=%.4f, Redução=%.1f%%, Ants avaliadas=%zu\n",
             iter + 1, current_fitness, result.accuracy, best_metrics_this_iter.reduction_rate * 100.0, eval_count);
 
-        // Early stopping desativado a pedido do usuário
-        /*
-        if (no_improve_count >= config.patience) {
-            fprintf(stderr, "Early stopping: sem melhoria por %zu iterações\n", config.patience);
+        // Early stopping: ativo apenas quando patience > 0 (via --patience)
+        if (config.patience > 0 && no_improve_count >= config.patience) {
+            fprintf(stderr, "Early stopping: sem melhoria por %zu iteracoes\n", config.patience);
             result.iterations = iter + 1;
             break;
         }
-        */
 
         result.iterations = iter + 1;
     }
