@@ -47,10 +47,22 @@ extract() {
     echo "$val"
 }
 
+# Retorna 0 se a config (modo,threads,sched,bs) já está no CSV com status=OK.
+already_done() {
+    local modo="$1" threads="$2" sched="$3" bs="$4"
+    [ -f "$CSV" ] || return 1
+    awk -F, -v m="$modo" -v t="$threads" -v s="$sched" -v b="$bs" \
+        '$1==m && $2==t && $3==s && $4==b && $12=="OK" {found=1} END{exit found?0:1}' "$CSV"
+}
+
 # Roda um config e grava 1 linha no CSV + bloco no RAW.
 # $1=modo $2=threads $3=sched $4=block_size $5=comando
 run_and_record() {
     local modo="$1" threads="$2" sched="$3" bs="$4" cmd="$5"
+    if already_done "$modo" "$threads" "$sched" "$bs"; then
+        echo "  -> pulando (ja concluido): modo=$modo threads=$threads sched=$sched bs=$bs"
+        return 0
+    fi
     local tmp; tmp=$(mktemp)
     echo "Running: modo=$modo threads=$threads sched=$sched bs=$bs"
 
