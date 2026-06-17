@@ -3,11 +3,9 @@
 **Problema:** seleção de instâncias com ACO (Ant Colony Optimization), usando 1-NN como *wrapper* de qualidade — descartar linhas redundantes preservando a acurácia.
 **Dataset:** CDC Diabetes Health Indicators — **253.680 instâncias × 21 features** (alvo `Diabetes_binary`).
 **Parâmetros:** 64 formigas · até 100 iterações · *early stopping* com paciência 20.
-**Baseline T1 (1 thread):** 264,510 ms/iteração (de `results/cdc_t1_baseline.log`).
+**Baseline T1 (1 thread):** 371,837 ms/iteração (de `results/cdc_t1_fresh.log`).
 
 > **Como ler o speedup:** `speedup = (T1/iteração) ÷ (Tp/iteração)` — normalizado por iteração porque o *early stopping* faz o nº de iterações (K) variar entre runs. Todos os 16 runs pararam em **K = 22** por convergência.
-
-> ⚠️ **VERSÃO PRELIMINAR (v1).** O baseline T1 vem de um run **anterior** (não da mesma leva): o 2-thread novo é mais lento que o "1-thread" antigo, o que é impossível para paralelização real → não são diretamente comparáveis. Efeito: as **speedups absolutas estão ~2× subestimadas** (por isso o 2-thread aparece <1× e o CUDA ~49× quando o real deve ser ~100×). Um baseline 1-thread da **mesma leva** está rodando para a versão definitiva. **O número confiável agora é a escalabilidade dentro da leva (Seção 2).**
 
 ## 1. CUDA — varredura de *block size*
 
@@ -15,17 +13,18 @@
 
 | Block size | Tempo ACO (ms) | Tempo (s) | GFLOPS | Speedup | Iter | Status |
 | ---: | ---: | ---: | ---: | ---: | ---: | :--- |
-| 32 | 119682 | 119.7 | 573.04 | 48.62x | 22 | OK |
-| 64 | 151400 | 151.4 | 452.86 | 38.44x | 22 | OK |
-| 128 | 149936 | 149.9 | 457.29 | 38.81x | 22 | OK |
-| 256 | 135250 | 135.2 | 507.00 | 43.03x | 22 | OK |
-| 512 | 127939 | 127.9 | 536.02 | 45.48x | 22 | OK |
-| 1024 | 118475 | 118.5 | 578.91 | 49.12x | 22 | OK |
+| 32 | 119682 | 119.7 | 573.04 | 68.35x | 22 | OK |
+| 64 | 151400 | 151.4 | 452.86 | 54.03x | 22 | OK |
+| 128 | 149936 | 149.9 | 457.29 | 54.56x | 22 | OK |
+| 256 | 135250 | 135.2 | 507.00 | 60.48x | 22 | OK |
+| 512 | 127939 | 127.9 | 536.02 | 63.94x | 22 | OK |
+| 1024 | 118475 | 118.5 | 578.91 | 69.05x | 22 | OK |
 
 - **Curva em U:** mais rápido nos extremos (**bs=1024**, ~118s) e mais lento no meio (**bs=64**, ~151s).
 - A construção ACO na GPU é ~6 ms/iteração; **~99,9% do tempo é o eval 1-NN** (carga *memory-bound* O(N²)). Block size só muda a velocidade, não a solução.
 
 **Por que a curva é em U?** No kernel `knn_1nn_kernel` ([kernels.cu:102](../src/cuda/kernels.cu#L102)) cada thread é um ponto de teste, mas todas leem a **mesma linha de referência `X[j]`** ao mesmo tempo (o laço sobre `j` avança em lockstep). A leitura pesada é então um **broadcast**: uma linha vai ao cache uma vez e serve todas as threads ativas. Dois efeitos competem:
+
 - **Blocos grandes (1024)** maximizam o broadcast — mais threads compartilham cada leitura de `X[j]` → por isso **bs=1024 é o mais rápido**.
 - **Blocos pequenos (32)** dão folga de escalonamento (~7.900 blocos): o scheduler mantém todos os SMs cheios e evita sobra no fim (*wave quantization*) → **bs=32 fica logo atrás**.
 - **O meio (64/128)** perde nos dois efeitos → o fundo do U.
@@ -39,16 +38,16 @@ Ou seja, não é "menor = mais rápido": são os **extremos** que ganham. Efeito
 
 | Escalonador | Threads | Tempo ACO (min) | GFLOPS | Speedup (vs T1) | Iter | Status |
 | :--- | ---: | ---: | ---: | ---: | ---: | :--- |
-| dynamic | 2 | 118.7 | 10.25 | 0.82x | 22 | OK |
-| dynamic | 4 | 57.9 | 20.92 | 1.67x | 22 | OK |
-| dynamic | 8 | 36.2 | 33.53 | 2.68x | 22 | OK |
-| dynamic | 16 | 18.1 | 67.42 | 5.36x | 22 | OK |
-| dynamic | 32 | 8.6 | 143.30 | 11.32x | 22 | OK |
-| static | 2 | 109.2 | 11.22 | 0.89x | 22 | OK |
-| static | 4 | 60.2 | 20.09 | 1.61x | 22 | OK |
-| static | 8 | 33.0 | 36.92 | 2.94x | 22 | OK |
-| static | 16 | 16.5 | 74.58 | 5.88x | 22 | OK |
-| static | 32 | 9.7 | 124.92 | 9.97x | 22 | OK |
+| dynamic | 2 | 118.7 | 10.25 | 1.15x | 22 | OK |
+| dynamic | 4 | 57.9 | 20.92 | 2.35x | 22 | OK |
+| dynamic | 8 | 36.2 | 33.53 | 3.77x | 22 | OK |
+| dynamic | 16 | 18.1 | 67.42 | 7.53x | 22 | OK |
+| dynamic | 32 | 8.6 | 143.30 | 15.91x | 22 | OK |
+| static | 2 | 109.2 | 11.22 | 1.25x | 22 | OK |
+| static | 4 | 60.2 | 20.09 | 2.26x | 22 | OK |
+| static | 8 | 33.0 | 36.92 | 4.13x | 22 | OK |
+| static | 16 | 16.5 | 74.58 | 8.27x | 22 | OK |
+| static | 32 | 9.7 | 124.92 | 14.01x | 22 | OK |
 
 ### Escalabilidade dentro da leva (confiável)
 
@@ -92,4 +91,4 @@ Todos os runs convergem para a mesma solução (por dispositivo) — a paraleliz
 
 ---
 
-*Gerado por `scripts/build_cdc_report.py`; gráficos por `scripts/plot_cdc_grid.py`. Baseline T1: `results/cdc_t1_baseline.log`.*
+*Gerado por `scripts/build_cdc_report.py`; gráficos por `scripts/plot_cdc_grid.py`. Baseline T1: `results/cdc_t1_fresh.log`.*

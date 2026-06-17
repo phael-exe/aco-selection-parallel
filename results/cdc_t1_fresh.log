@@ -1,0 +1,63 @@
+  Ant 26: F1=0.7733, Acc=0.9368, Redução=23.1%
+Iter 1: F1=0.7733, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 47: F1=0.7733, Acc=0.9368, Redução=23.0%
+Iter 2: F1=0.7733, Acc=0.9368, Redução=23.0%, Ants avaliadas=1
+  Ant 17: F1=0.7702, Acc=0.9357, Redução=23.1%
+Iter 3: F1=0.7702, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 60: F1=0.7712, Acc=0.9366, Redução=23.1%
+Iter 4: F1=0.7712, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 61: F1=0.7721, Acc=0.9364, Redução=23.1%
+Iter 5: F1=0.7721, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 49: F1=0.7726, Acc=0.9365, Redução=23.1%
+Iter 6: F1=0.7726, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 3: F1=0.7717, Acc=0.9366, Redução=23.1%
+Iter 7: F1=0.7717, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 39: F1=0.7723, Acc=0.9366, Redução=23.1%
+Iter 8: F1=0.7723, Acc=0.9368, Redução=23.1%, Ants avaliadas=1
+  Ant 50: F1=0.7720, Acc=0.9365, Redução=23.2%
+Iter 9: F1=0.7720, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 10: F1=0.7700, Acc=0.9358, Redução=23.2%
+Iter 10: F1=0.7700, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 22: F1=0.7702, Acc=0.9361, Redução=23.2%
+Iter 11: F1=0.7702, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 48: F1=0.7695, Acc=0.9359, Redução=23.2%
+Iter 12: F1=0.7695, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 46: F1=0.7714, Acc=0.9360, Redução=23.2%
+Iter 13: F1=0.7714, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 58: F1=0.7699, Acc=0.9359, Redução=23.2%
+Iter 14: F1=0.7699, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 26: F1=0.7718, Acc=0.9364, Redução=23.2%
+Iter 15: F1=0.7718, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 2: F1=0.7690, Acc=0.9356, Redução=23.2%
+Iter 16: F1=0.7690, Acc=0.9368, Redução=23.2%, Ants avaliadas=1
+  Ant 60: F1=0.7682, Acc=0.9354, Redução=23.3%
+Iter 17: F1=0.7682, Acc=0.9368, Redução=23.3%, Ants avaliadas=1
+  Ant 28: F1=0.7710, Acc=0.9363, Redução=23.3%
+Iter 18: F1=0.7710, Acc=0.9368, Redução=23.3%, Ants avaliadas=1
+  Ant 27: F1=0.7693, Acc=0.9357, Redução=23.4%
+Iter 19: F1=0.7693, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+  Ant 27: F1=0.7692, Acc=0.9360, Redução=23.4%
+Iter 20: F1=0.7692, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+  Ant 37: F1=0.7683, Acc=0.9355, Redução=23.5%
+Iter 21: F1=0.7683, Acc=0.9368, Redução=23.5%, Ants avaliadas=1
+  Ant 22: F1=0.7679, Acc=0.9354, Redução=23.4%
+Iter 22: F1=0.7679, Acc=0.9368, Redução=23.4%, Ants avaliadas=1
+Early stopping: sem melhoria por 20 iteracoes
+Dataset carregado: 253680 instancias, 21 features
+Tempo de leitura:  387.97 ms
+Threads OpenMP:    1
+Parametros ACO:    ants=64, iter=100, evap=0.1, Q=1, alpha=1, beta=1
+
+
+=== Resultado ACO (OpenMP) ===
+Melhor solucao: 195207/253680 instancias (reducao ~23.0499%)
+Acuracia: 0.936798
+Precisao: 0.772991
+Recall: 0.773581
+F1-Score: 0.773286
+Iteracoes executadas: 22/100 (early stop)
+Tempo ACO: 8.18041e+06 ms
+Tempo eval (1-NN): 7.62737e+06 ms
+CPU eval throughput: 8.97887 GFLOPS
+Threads: 1
+Eval strategy: top-1 formigas/iteracao (auto-detectado para N=253680)

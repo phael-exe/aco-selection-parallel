@@ -120,6 +120,7 @@ def build_report(csv_path, t1_log, out_path, final=False):
                  "mas todas leem a **mesma linha de referência `X[j]`** ao mesmo tempo (o laço sobre "
                  "`j` avança em lockstep). A leitura pesada é então um **broadcast**: uma linha vai "
                  "ao cache uma vez e serve todas as threads ativas. Dois efeitos competem:")
+        L.append("")  # linha em branco: separa o parágrafo da lista (markdown)
         L.append("- **Blocos grandes (1024)** maximizam o broadcast — mais threads compartilham "
                  "cada leitura de `X[j]` → por isso **bs=1024 é o mais rápido**.")
         L.append("- **Blocos pequenos (32)** dão folga de escalonamento (~7.900 blocos): o scheduler "
