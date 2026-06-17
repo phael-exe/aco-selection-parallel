@@ -291,6 +291,7 @@ int main(int argc, char** argv) {
     double beta             = 1.0;
     int    eval_top_k_exp   = 0;   // 0 = auto-detectar
     int    block_size       = 256;
+    int    patience         = 0;    // 0 = early stopping desligado (--patience N liga)
 
     for (int i = 3; i + 1 < argc; i += 2) {
         if      (!strcmp(argv[i], "--ants"))       num_ants       = atoi(argv[i+1]);
@@ -301,6 +302,7 @@ int main(int argc, char** argv) {
         else if (!strcmp(argv[i], "--beta"))       beta           = atof(argv[i+1]);
         else if (!strcmp(argv[i], "--eval-top-k")) eval_top_k_exp = atoi(argv[i+1]);
         else if (!strcmp(argv[i], "--block-size")) block_size     = atoi(argv[i+1]);
+        else if (!strcmp(argv[i], "--patience"))   patience       = atoi(argv[i+1]);
         else cerr << "Aviso: argumento desconhecido '" << argv[i] << "' ignorado\n";
     }
 
@@ -382,7 +384,6 @@ int main(int argc, char** argv) {
     int    best_selected = 0;
     int    iters_done    = 0;
     int    no_improve    = 0;
-    int    patience      = 10;
 
     int grid_ants = (K * N + block_size - 1) / block_size;
     int grid_phe  = (N + block_size - 1) / block_size;
@@ -515,13 +516,11 @@ int main(int argc, char** argv) {
             eval_count);
 
         iters_done = iter + 1;
-        // -- Early stopping desativado a pedido do usuário --
-        /*
-        if (no_improve >= patience) {
+        // Early stopping: ativo apenas quando patience > 0 (via --patience)
+        if (patience > 0 && no_improve >= patience) {
             fprintf(stderr, "Early stopping: sem melhoria por %d iteracoes\n", patience);
             break;
         }
-        */
     }
 
     auto t_aco1 = chrono::high_resolution_clock::now();

@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
     double alpha            = 1.0;   // peso do feromônio τ^α na seleção
     double beta             = 1.0;   // peso da visibilidade η^β na seleção
     int    eval_top_k_explicit = 0;  // 0 = não especificado (auto-detectar)
+    int    patience_arg        = 0;  // 0 = early stopping desligado (--patience N liga)
 
     // Parse de argumentos opcionais (--flag valor, aos pares)
     for (int i = 3; i + 1 < argc; i += 2) {
@@ -55,6 +56,8 @@ int main(int argc, char* argv[]) {
             beta = std::atof(argv[i + 1]);
         } else if (std::strcmp(argv[i], "--eval-top-k") == 0) {
             eval_top_k_explicit = std::atoi(argv[i + 1]);
+        } else if (std::strcmp(argv[i], "--patience") == 0) {
+            patience_arg = std::atoi(argv[i + 1]);
         } else {
             std::cerr << "Aviso: argumento desconhecido '" << argv[i] << "' ignorado\n";
         }
@@ -99,7 +102,7 @@ int main(int argc, char* argv[]) {
     config.Q        = Q;
     config.alpha    = alpha;
     config.beta     = beta;
-    config.patience = 10;  // default
+    config.patience = static_cast<size_t>(patience_arg);  // 0 = desligado
 
     // Auto-detectar eval_top_k baseado em N (se não especificado)
     if (eval_top_k_explicit == 0) {

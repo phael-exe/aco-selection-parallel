@@ -25,6 +25,7 @@ cmake-build-*/
 results/*.csv
 results/*.png
 results/*.pdf
+results/cdc_grid_*
 !results/.gitkeep
 
 # OS
