@@ -22,7 +22,7 @@ def extract_t1_per_iter(log_path):
     with open(log_path, encoding="utf-8", errors="ignore") as fh:
         text = fh.read()
     for block in re.split(r"=== Resultado ACO", text):
-        if "Threads: 1" not in block:
+        if not re.search(r"Threads:\s*1\b", block):
             continue
         m_t = re.search(r"Tempo ACO:\s*([0-9.eE+]+)\s*ms", block)
         m_i = re.search(r"Iteracoes executadas:\s*(\d+)", block)
@@ -44,6 +44,16 @@ def build_report(csv_path, t1_log, out_path):
     t1 = extract_t1_per_iter(t1_log)
     with open(csv_path, newline="", encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
+
+    # De-duplicate: for each config key keep the last OK row; if none, the last row.
+    # This handles resumable/append-only runs where ERRO rows may be retried as OK.
+    _dedup = {}
+    for r in rows:
+        key = (r["modo"], r["threads"], r["escalonador"], r["block_size"].strip())
+        prev = _dedup.get(key)
+        if prev is None or r["status"] == "OK" or prev["status"] != "OK":
+            _dedup[key] = r
+    rows = list(_dedup.values())
 
     cuda = [r for r in rows if r["modo"] == "CUDA"]
     omp = [r for r in rows if r["modo"] == "OpenMP"]
