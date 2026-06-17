@@ -25,6 +25,13 @@
 - **Curva em U:** mais rápido nos extremos (**bs=1024**, ~118s) e mais lento no meio (**bs=64**, ~151s).
 - A construção ACO na GPU é ~6 ms/iteração; **~99,9% do tempo é o eval 1-NN** (carga *memory-bound* O(N²)). Block size só muda a velocidade, não a solução.
 
+**Por que a curva é em U?** No kernel `knn_1nn_kernel` ([kernels.cu:102](../src/cuda/kernels.cu#L102)) cada thread é um ponto de teste, mas todas leem a **mesma linha de referência `X[j]`** ao mesmo tempo (o laço sobre `j` avança em lockstep). A leitura pesada é então um **broadcast**: uma linha vai ao cache uma vez e serve todas as threads ativas. Dois efeitos competem:
+- **Blocos grandes (1024)** maximizam o broadcast — mais threads compartilham cada leitura de `X[j]` → por isso **bs=1024 é o mais rápido**.
+- **Blocos pequenos (32)** dão folga de escalonamento (~7.900 blocos): o scheduler mantém todos os SMs cheios e evita sobra no fim (*wave quantization*) → **bs=32 fica logo atrás**.
+- **O meio (64/128)** perde nos dois efeitos → o fundo do U.
+
+Ou seja, não é "menor = mais rápido": são os **extremos** que ganham. Efeito modesto (~28%) e todos os block sizes dão a mesma solução — é puro *tuning* de performance. *(Confirmação por profiling — ocupância e hit-rate de cache via Nsight Compute — planejada.)*
+
 ## 2. OpenMP — threads × escalonador
 
 ![OpenMP: tempo por threads](figs/cdc_omp_tempo.png)
