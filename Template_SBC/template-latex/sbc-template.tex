@@ -180,7 +180,10 @@ Quanto ao tempo (Figura~\ref{fig:speedup} e Tabela~\ref{tab:baseline}), o \texti
 CUDA cresce com $N$ --- de $0{,}7\times$ na menor base a $8{,}2\times$ na maior ---, mas em
 \textbf{todas} as nove bases o OpenMP em 24 núcleos é mais rápido que a GPU: o custo fixo de
 lançamento de kernels e de transferência host--device não se amortiza enquanto o problema é
-pequeno. Em bases de poucos milhares de instâncias, a CPU multicore é a melhor escolha.
+pequeno. Em bases de poucos milhares de instâncias, a CPU multicore é a melhor escolha. O tempo
+sequencial (Tabela~\ref{tab:baseline}) evidencia o custo $O(N^2 F)$ da avaliação: a base
+\textit{vaccine} é a mais lenta mesmo tendo menos instâncias que \textit{Employee} e
+\textit{brain-stroke}, por possuir 40 atributos --- contra 8 a 19 das demais.
 
 \begin{table}[ht]
 \centering
@@ -218,19 +221,19 @@ brain-stroke   & 4981 & 0,972 & 0,705 & 0,750 & 0,727 & 22,4 \\
 \caption{\textit{Speedup} sobre o sequencial nas nove bases (100 iterações). A melhor
   configuração OpenMP é a mais rápida entre threads e escalonadores.}
 \label{tab:baseline}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrr}
 \hline
-\textbf{Dataset} & \textbf{N} & \textbf{Seq.\ (ms)} & \textbf{CUDA} & \textbf{OpenMP (melhor)} \\
+\textbf{Dataset} & \textbf{N} & \textbf{F} & \textbf{Seq.\ (ms)} & \textbf{CUDA} & \textbf{OpenMP (melhor)} \\
 \hline
-heart\_failure & 299  & 82,1    & 0,7$\times$ & 2,9$\times$ \\
-haberman       & 306  & 72,2    & 1,8$\times$ & 3,6$\times$ \\
-cirrhosis      & 418  & 161,4   & 0,9$\times$ & 4,0$\times$ \\
-diabetes       & 768  & 275,8   & 1,5$\times$ & 4,5$\times$ \\
-tic-tac-toe    & 958  & 670,6   & 1,8$\times$ & 5,8$\times$ \\
-yeast          & 1484 & 861,2   & 2,4$\times$ & 6,5$\times$ \\
-vaccine        & 3152 & 16439,7 & 5,9$\times$ & 13,0$\times$ \\
-Employee       & 4653 & 5442,5  & 7,4$\times$ & 10,4$\times$ \\
-brain-stroke   & 4981 & 7773,9  & 8,2$\times$ & 11,5$\times$ \\
+heart\_failure & 299  & 12 & 82,1    & 0,7$\times$ & 2,9$\times$ \\
+haberman       & 306  & 3  & 72,2    & 1,8$\times$ & 3,6$\times$ \\
+cirrhosis      & 418  & 19 & 161,4   & 0,9$\times$ & 4,0$\times$ \\
+diabetes       & 768  & 8  & 275,8   & 1,5$\times$ & 4,5$\times$ \\
+tic-tac-toe    & 958  & 9  & 670,6   & 1,8$\times$ & 5,8$\times$ \\
+yeast          & 1484 & 8  & 861,2   & 2,4$\times$ & 6,5$\times$ \\
+vaccine        & 3152 & 40 & 16439,7 & 5,9$\times$ & 13,0$\times$ \\
+Employee       & 4653 & 8  & 5442,5  & 7,4$\times$ & 10,4$\times$ \\
+brain-stroke   & 4981 & 10 & 7773,9  & 8,2$\times$ & 11,5$\times$ \\
 \hline
 \end{tabular}
 \end{table}
