@@ -31,6 +31,8 @@
 
 Ou seja, não é "menor = mais rápido": são os **extremos** que ganham. Efeito modesto (~28%) e todos os block sizes dão a mesma solução — é puro *tuning* de performance. *(Confirmação por profiling — ocupância e hit-rate de cache via Nsight Compute — planejada.)*
 
+**Reprodutibilidade:** a varredura foi repetida **2× por block size** (`results/cdc_cuda_recheck.csv`) com variação de apenas **0,01–0,18%** entre execuções — *vs.* os 28% de spread da curva. Confirma que o padrão em U é **real, não ruído**.
+
 ## 2. OpenMP — threads × escalonador
 
 ![OpenMP: tempo por threads](figs/cdc_omp_tempo.png)
