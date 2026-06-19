@@ -73,7 +73,16 @@ computacional ``limita sua escalabilidade, tornando-o inviável para grandes bas
 Existe, portanto, uma lacuna clara: falta uma versão \textbf{paralela} do ACO de seleção de
 instâncias capaz de explorar CPUs multicore e GPUs para viabilizar o algoritmo em larga escala.
 
-Este trabalho preenche essa lacuna. Implementamos o ACO de seleção de instâncias em OpenMP
+A paralelização do ACO é um tema bem estabelecido~\cite{pedemonte2011}, com implementações
+eficientes em CPU multicore via OpenMP~\cite{abouelfarag2015} e em GPU via
+CUDA~\cite{delevacq2013} que alcançam acelerações de uma a duas ordens de grandeza. Esses
+trabalhos, contudo, concentram-se em problemas de roteamento --- sobretudo o caixeiro-viajante
+--- nos quais o gargalo é a \textit{construção de caminhos}. Na seleção de instâncias o gargalo
+é distinto: a avaliação 1-NN $O(N^2)$, uma carga \textit{memory-bound}~\cite{williams2009}. Não
+encontramos na literatura uma avaliação sistemática da paralelização (OpenMP \textit{e} CUDA) do
+ACO de seleção de instâncias em larga escala.
+
+Implementamos o ACO de seleção de instâncias em OpenMP
 (CPU)~\cite{dagum1998} e CUDA (GPU)~\cite{nickolls2008}, movendo a avaliação 1-NN inteiramente
 para a GPU, e avaliamos o impacto do número de threads, do escalonador de laço e do tamanho de
 bloco. Nas nove bases pequenas ($\leq$5k instâncias) o OpenMP em 24 núcleos supera a GPU, cujo
@@ -200,7 +209,8 @@ com 16 threads, os escalonadores \texttt{static} (partição em blocos) e \textt
 \texttt{dynamic} é em média $\sim$25--30\% mais rápido que o \texttt{static}, enquanto o
 tamanho de \textit{chunk} (1, 2 ou 3) tem efeito secundário. O balanceamento dinâmico compensa
 porque cada iteração do laço quente é pesada o suficiente para diluir o custo da fila
-compartilhada.
+compartilhada. O resultado está alinhado a estudos anteriores de \textit{tuning} de
+escalonadores e de número de threads em ACO paralelo~\cite{abouelfarag2015}.
 
 \begin{figure}[ht]
 \centering
@@ -242,8 +252,10 @@ A varredura de tamanho de bloco da CUDA (Figura~\ref{fig:cuda}) revela uma curva
 os extremos (bloco 32 e 1024) são mais rápidos e o meio (64--128) mais lento, com diferença de
 $\sim$28\% entre o melhor e o pior. A explicação está no padrão de acesso do
 \texttt{knn\_1nn\_kernel}: todas as threads leem a mesma linha de referência simultaneamente, em
-\textit{broadcast}. Blocos grandes maximizam o reúso desse \textit{broadcast}; blocos pequenos
-dão folga ao escalonador para manter os SMs cheios; o meio perde nos dois efeitos. O padrão é
+\textit{broadcast}. Blocos grandes maximizam o reúso desse \textit{broadcast}, favorecidos pela
+coalescência de memória~\cite{nvidiabpg}; blocos pequenos, embora de menor ocupância, mantêm o
+desempenho --- pois ocupância alta não implica melhor desempenho quando há paralelismo de
+instruções e de memória suficiente~\cite{volkov2010}; o meio perde nos dois efeitos. O padrão é
 reprodutível (variação $<$0,2\% entre execuções repetidas), confirmando que não é ruído.
 
 \begin{figure}[ht]
