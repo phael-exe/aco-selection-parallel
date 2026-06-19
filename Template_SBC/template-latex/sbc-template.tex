@@ -156,23 +156,58 @@ de execução, vazão (GFLOPS) e \textit{speedup}. Para o CDC, o \textit{speedup
 iteração, usando como referência ($T_1$) uma execução de 1 thread da mesma campanha. O código e
 os dados estão disponíveis publicamente\footnote{\url{https://github.com/phael-exe/aco-selection-parallel}}.
 
+\subsection{Métricas}
+
+A qualidade da seleção é avaliada por um classificador 1-NN treinado sobre o subconjunto
+selecionado $S$, por meio de quatro métricas: \textit{acurácia} (fração de classificações
+corretas), \textit{precisão} (fração de positivos preditos que estão corretos), \textit{recall}
+(fração de positivos reais recuperados) e $F_1$, a média harmônica de precisão e \textit{recall}
+($F_1 = 2\,\frac{\text{precisão}\cdot\text{recall}}{\text{precisão}+\text{recall}}$). A
+compactação é medida pela \textit{taxa de redução} $1 - |S|/N$ (maior é melhor). O desempenho é
+quantificado pelo tempo de execução do ACO, pela vazão da avaliação 1-NN em GFLOPS (operações de
+ponto flutuante por segundo) e pelo \textit{speedup}, a razão entre o tempo de uma referência e o
+tempo da configuração avaliada.
+
 
 \section{Resultados}
 
-\subsection{Escala pequena/média: a CPU multicore supera a GPU}
+\subsection{Desempenho em bases de pequena e média escala}
 
-A Figura~\ref{fig:speedup} e a Tabela~\ref{tab:baseline} mostram o desempenho nas nove bases.
-A qualidade é preservada por todas as implementações (variações de $F_1$ entre seq, OpenMP e
-CUDA ficam dentro de $\sim$2\%, ruído estatístico do algoritmo estocástico), com redução de 6\%
-a 22\% das instâncias. Quanto ao tempo, o \textit{speedup} da CUDA cresce com $N$ (de
-$0{,}7\times$ na menor base a $8{,}2\times$ na maior), mas em \textbf{todas} as nove bases o
-OpenMP em 24 núcleos é mais rápido que a GPU: o custo fixo de lançamento de kernels e de
-transferência host--device não se amortiza enquanto o problema é pequeno. Em bases de poucos
-milhares de instâncias, portanto, a CPU multicore é a melhor escolha.
+A Tabela~\ref{tab:qualidade} reporta a qualidade da seleção nas nove bases: as três
+implementações convergem para soluções equivalentes (variações de $F_1$ dentro de $\sim$2\%,
+compatíveis com o ruído do algoritmo estocástico), removendo de 6\% a 22\% das instâncias.
+Quanto ao tempo (Figura~\ref{fig:speedup} e Tabela~\ref{tab:baseline}), o \textit{speedup} da
+CUDA cresce com $N$ --- de $0{,}7\times$ na menor base a $8{,}2\times$ na maior ---, mas em
+\textbf{todas} as nove bases o OpenMP em 24 núcleos é mais rápido que a GPU: o custo fixo de
+lançamento de kernels e de transferência host--device não se amortiza enquanto o problema é
+pequeno. Em bases de poucos milhares de instâncias, a CPU multicore é a melhor escolha.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Qualidade da seleção nas nove bases (classificador 1-NN, configuração sequencial; as
+  três implementações convergem para qualidade equivalente).}
+\label{tab:qualidade}
+\begin{tabular}{lrrrrrr}
+\hline
+\textbf{Dataset} & \textbf{N} & \textbf{Acur.} & \textbf{Prec.} & \textbf{Recall} & \textbf{$F_1$} & \textbf{Red.\ (\%)} \\
+\hline
+heart\_failure & 299  & 0,926 & 0,878 & 0,896 & 0,887 & 19,4 \\
+haberman       & 306  & 0,935 & 0,851 & 0,914 & 0,881 & 19,9 \\
+cirrhosis      & 418  & 0,880 & 0,893 & 0,849 & 0,867 & 21,5 \\
+diabetes       & 768  & 0,935 & 0,916 & 0,896 & 0,906 & 19,5 \\
+tic-tac-toe    & 958  & 0,985 & 0,991 & 0,967 & 0,979 & 6,7  \\
+yeast          & 1484 & 0,978 & 0,974 & 0,984 & 0,979 & 6,3  \\
+vaccine        & 3152 & 0,980 & 0,961 & 0,955 & 0,958 & 12,7 \\
+Employee       & 4653 & 0,867 & 0,798 & 0,821 & 0,809 & 22,2 \\
+brain-stroke   & 4981 & 0,972 & 0,705 & 0,750 & 0,727 & 22,4 \\
+\hline
+\end{tabular}
+\end{table}
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=.78\textwidth]{figs/baseline_speedup_vs_n.png}
+\includegraphics[width=.74\textwidth]{figs/baseline_speedup_vs_n.png}
 \caption{O ganho da GPU cresce com o tamanho da base, mas até $\sim$5k instâncias o OpenMP em
   24 núcleos supera a CUDA: o custo fixo da GPU só se amortiza em escala maior.}
 \label{fig:speedup}
@@ -180,27 +215,27 @@ milhares de instâncias, portanto, a CPU multicore é a melhor escolha.
 
 \begin{table}[ht]
 \centering
-\caption{Qualidade e \textit{speedup} nas nove bases (100 iterações, sequencial como
-  referência). $F_1$ do sequencial; melhor configuração OpenMP entre threads e escalonadores.}
+\caption{\textit{Speedup} sobre o sequencial nas nove bases (100 iterações). A melhor
+  configuração OpenMP é a mais rápida entre threads e escalonadores.}
 \label{tab:baseline}
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrr}
 \hline
-\textbf{Dataset} & \textbf{N} & \textbf{$F_1$} & \textbf{Red.\ (\%)} & \textbf{CUDA} & \textbf{OpenMP (melhor)} \\
+\textbf{Dataset} & \textbf{N} & \textbf{Seq.\ (ms)} & \textbf{CUDA} & \textbf{OpenMP (melhor)} \\
 \hline
-heart\_failure & 299  & 0,887 & 19,4 & 0,7$\times$ & 2,9$\times$ \\
-haberman       & 306  & 0,881 & 19,9 & 1,8$\times$ & 3,6$\times$ \\
-cirrhosis      & 418  & 0,867 & 21,5 & 0,9$\times$ & 4,0$\times$ \\
-diabetes       & 768  & 0,906 & 19,5 & 1,5$\times$ & 4,5$\times$ \\
-tic-tac-toe    & 958  & 0,979 & 6,7  & 1,8$\times$ & 5,8$\times$ \\
-yeast          & 1484 & 0,979 & 6,3  & 2,4$\times$ & 6,5$\times$ \\
-vaccine        & 3152 & 0,958 & 12,7 & 5,9$\times$ & 13,0$\times$ \\
-Employee       & 4653 & 0,809 & 22,2 & 7,4$\times$ & 10,4$\times$ \\
-brain-stroke   & 4981 & 0,727 & 22,4 & 8,2$\times$ & 11,5$\times$ \\
+heart\_failure & 299  & 82,1    & 0,7$\times$ & 2,9$\times$ \\
+haberman       & 306  & 72,2    & 1,8$\times$ & 3,6$\times$ \\
+cirrhosis      & 418  & 161,4   & 0,9$\times$ & 4,0$\times$ \\
+diabetes       & 768  & 275,8   & 1,5$\times$ & 4,5$\times$ \\
+tic-tac-toe    & 958  & 670,6   & 1,8$\times$ & 5,8$\times$ \\
+yeast          & 1484 & 861,2   & 2,4$\times$ & 6,5$\times$ \\
+vaccine        & 3152 & 16439,7 & 5,9$\times$ & 13,0$\times$ \\
+Employee       & 4653 & 5442,5  & 7,4$\times$ & 10,4$\times$ \\
+brain-stroke   & 4981 & 7773,9  & 8,2$\times$ & 11,5$\times$ \\
 \hline
 \end{tabular}
 \end{table}
 
-\subsection{Escalonadores OpenMP: \textit{dynamic} vence \textit{static}}
+\subsection{Efeito do escalonador OpenMP}
 
 A avaliação 1-NN é uma carga \textit{irregular} (instâncias com vizinhos próximos terminam mais
 cedo), o que favorece escalonadores que rebalanceiam a carga. A Figura~\ref{fig:sched} compara,
@@ -221,32 +256,41 @@ escalonadores e de número de threads em ACO paralelo~\cite{abouelfarag2015}.
 \label{fig:sched}
 \end{figure}
 
-\subsection{Larga escala (253.680 instâncias): a GPU domina}
+\subsection{Desempenho na base de larga escala}
 
-Na base CDC, o quadro se inverte. A Tabela~\ref{tab:cdc} resume o desempenho. O OpenMP escala
-bem com o número de threads, chegando a $\sim$14$\times$ (\texttt{static}) e $\sim$16$\times$
-(\texttt{dynamic}) sobre 1 thread ao usar as 32 threads do i9-14900K, confirmando que o
-\texttt{dynamic} mantém vantagem em escala. A CUDA, por sua vez, atinge \textbf{38--69$\times$}
-sobre o sequencial, executando a campanha completa em cerca de 2~minutos. A melhor configuração
-CUDA é $\sim$4,3$\times$ mais rápida que a melhor configuração OpenMP (32 threads).
+Na base CDC o quadro se inverte. O OpenMP escala bem com o número de threads
+(Tabela~\ref{tab:cdcomp} e Figura~\ref{fig:cdcomp}), chegando a $\sim$14$\times$ (\texttt{static})
+e $\sim$16$\times$ (\texttt{dynamic}) sobre 1 thread ao usar as 32 threads do i9-14900K; a
+vantagem do \texttt{dynamic} concentra-se nos maiores graus de paralelismo. A CUDA
+(Tabela~\ref{tab:cdccuda}) atinge \textbf{54--69$\times$} sobre o sequencial, executando a
+campanha completa em $\sim$2~minutos --- a melhor configuração CUDA é $\sim$4,3$\times$ mais
+rápida que a melhor configuração OpenMP.
 
 \begin{table}[ht]
 \centering
-\caption{Desempenho na base CDC (253.680 instâncias; \textit{early stopping} em 22 iterações;
-  \textit{speedup} normalizado por iteração vs.\ 1 thread). Qualidade idêntica entre os modos.}
-\label{tab:cdc}
-\begin{tabular}{llrr}
+\caption{OpenMP na base CDC por número de threads (\textit{early stopping} em 22 iterações;
+  \textit{speedup} normalizado por iteração vs.\ 1 thread; \textit{sp.}\ = \textit{speedup}).}
+\label{tab:cdcomp}
+\begin{tabular}{rrrrr}
 \hline
-\textbf{Modo} & \textbf{Configuração} & \textbf{Tempo} & \textbf{Speedup} \\
+\textbf{Threads} & \textbf{static (min)} & \textbf{\textit{sp.}} & \textbf{dynamic (min)} & \textbf{\textit{sp.}} \\
 \hline
-OpenMP & 2 threads (static)   & 109,2 min & 1,3$\times$ \\
-OpenMP & 32 threads (static)  & 9,7 min   & 14,0$\times$ \\
-OpenMP & 32 threads (dynamic) & 8,6 min   & 15,9$\times$ \\
-CUDA   & block size 64        & 151 s     & 54,0$\times$ \\
-CUDA   & block size 1024      & 118 s     & \textbf{69,1$\times$} \\
+2  & 109,2 & 1,25$\times$  & 118,7 & 1,15$\times$ \\
+4  & 60,2  & 2,26$\times$  & 57,9  & 2,35$\times$ \\
+8  & 33,0  & 4,13$\times$  & 36,2  & 3,77$\times$ \\
+16 & 16,5  & 8,27$\times$  & 18,1  & 7,53$\times$ \\
+32 & 9,7   & 14,01$\times$ & 8,6   & \textbf{15,91$\times$} \\
 \hline
 \end{tabular}
 \end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.74\textwidth]{figs/cdc_omp_speedup.png}
+\caption{Escalabilidade do OpenMP na base CDC: o \textit{speedup} relativo a 2 threads cresce de
+  forma quase linear até 32 threads, com leve vantagem do \texttt{dynamic} no topo.}
+\label{fig:cdcomp}
+\end{figure}
 
 A varredura de tamanho de bloco da CUDA (Figura~\ref{fig:cuda}) revela uma curva em \textbf{U}:
 os extremos (bloco 32 e 1024) são mais rápidos e o meio (64--128) mais lento, com diferença de
@@ -257,6 +301,25 @@ coalescência de memória~\cite{nvidiabpg}; blocos pequenos, embora de menor ocu
 desempenho --- pois ocupância alta não implica melhor desempenho quando há paralelismo de
 instruções e de memória suficiente~\cite{volkov2010}; o meio perde nos dois efeitos. O padrão é
 reprodutível (variação $<$0,2\% entre execuções repetidas), confirmando que não é ruído.
+
+\begin{table}[ht]
+\centering
+\caption{CUDA na base CDC por tamanho de bloco (tempo, vazão e \textit{speedup} normalizado por
+  iteração vs.\ 1 thread). A qualidade é idêntica em todos os blocos.}
+\label{tab:cdccuda}
+\begin{tabular}{rrrr}
+\hline
+\textbf{Block size} & \textbf{Tempo (s)} & \textbf{GFLOPS} & \textbf{Speedup} \\
+\hline
+32   & 119,7 & 573,0 & 68,4$\times$ \\
+64   & 151,4 & 452,9 & 54,0$\times$ \\
+128  & 149,9 & 457,3 & 54,6$\times$ \\
+256  & 135,2 & 507,0 & 60,5$\times$ \\
+512  & 127,9 & 536,0 & 63,9$\times$ \\
+1024 & 118,5 & 578,9 & \textbf{69,1$\times$} \\
+\hline
+\end{tabular}
+\end{table}
 
 \begin{figure}[ht]
 \centering
@@ -272,23 +335,54 @@ instâncias mantendo $F_1\approx0{,}77$ --- a paralelização altera o tempo, n�
 tempo sem perda de qualidade.
 
 
+\section{Análise Crítica}
+
+Os resultados sustentam a tese de escalabilidade, mas alguns pontos merecem leitura cuidadosa.
+
+\textbf{O ponto de cruzamento depende do hardware.} A constatação de que o OpenMP supera a GPU em
+bases pequenas é contingente à CPU empregada: o i9-14900K, com 24 núcleos, é particularmente
+robusto. Em uma CPU mais modesta, o ponto de cruzamento se deslocaria para bases menores e a GPU
+venceria antes. O resultado deve ser lido como ``a GPU compensa acima de um limiar de tamanho'',
+e não como superioridade absoluta de um paradigma.
+
+\textbf{A explicação da curva em U é fundamentada, mas não medida.} A atribuição do efeito ao
+equilíbrio entre reúso de \textit{broadcast} e ocupância é coerente com a
+literatura~\cite{volkov2010,nvidiabpg}, mas não foi confirmada por \textit{profiling} do nosso
+kernel (ocupância alcançada, vazão de memória e taxa de acerto de cache via Nsight Compute). A
+reprodutibilidade ($<$0,2\%) garante que o padrão é real, não que a causa proposta seja a única.
+
+\textbf{O baseline de \textit{speedup} do CDC é uma escolha metodológica.} Como executar o
+sequencial completo em 253 mil instâncias levaria horas, o tempo de referência ($T_1$) é uma
+execução de 1 thread da mesma campanha, com o \textit{speedup} normalizado por iteração --- justo
+(mesmo código e máquina), mas cuja magnitude absoluta depende dessa normalização. Valores de
+\textit{speedup} entre trabalhos só são comparáveis sob a mesma metodologia.
+
+\textbf{Heterogeneidade de núcleos.} O i9-14900K combina 8 núcleos de desempenho (com
+\textit{hyperthreading}) e 16 de eficiência; a escalabilidade de 16 para 32 threads mistura esses
+tipos de núcleo, tornando a curva de \textit{speedup} menos regular que a de uma CPU homogênea.
+
+\textbf{Generalização e comparação com a literatura.} Avaliamos uma única base de larga escala, e
+a taxa de redução variou de 6\% a 22\% entre os datasets --- o benefício da seleção é dependente
+dos dados. Delévacq et al.~\cite{delevacq2013} reportam $\sim$23$\times$ para o ACO em GPU no
+caixeiro-viajante; nosso $\sim$69$\times$ refere-se a outro problema, outra carga (avaliação 1-NN
+\textit{memory-bound}) e outro hardware, não sendo diretamente comparável, mas situando-se na
+faixa de uma a duas ordens de grandeza típica de implementações de ACO em GPU~\cite{pedemonte2011}.
+
+
 \section{Conclusão}
 
 Este trabalho paralelizou o ACO de seleção de instâncias em OpenMP e CUDA, preenchendo a lacuna
-de escalabilidade deixada pelo baseline sequencial de Magalhães et al.~\cite{magalhaes2024} e
-viabilizando o algoritmo em uma base de 253.680 instâncias. O resultado central é que
-\textbf{o ganho da GPU é dependente de escala}: em bases de até $\sim$5k instâncias, o custo
-fixo da GPU não se amortiza e o OpenMP em 24 núcleos é mais rápido; em larga escala, a CUDA
-domina, atingindo $\sim$69$\times$ sobre o sequencial e sendo $\sim$4,3$\times$ mais rápida que
-a melhor configuração de CPU. Em todos os casos, a qualidade da seleção é preservada
-($\sim$23\% de redução, $F_1\approx0{,}77$).
+de escalabilidade do baseline sequencial de Magalhães et al.~\cite{magalhaes2024} e viabilizando
+o algoritmo em uma base de 253.680 instâncias. O resultado central é que \textbf{o ganho da GPU é
+dependente de escala}: em bases de até $\sim$5k instâncias o OpenMP em 24 núcleos é mais rápido,
+enquanto em larga escala a CUDA domina, atingindo $\sim$69$\times$ sobre o sequencial e sendo
+$\sim$4,3$\times$ mais rápida que a melhor configuração de CPU --- sempre preservando a qualidade
+da seleção ($\sim$23\% de redução, $F_1\approx0{,}77$).
 
-As principais limitações são o uso de uma única base de larga escala e a ausência de
-\textit{profiling} de hardware (ocupância, vazão de memória) para confirmar quantitativamente a
-explicação da curva em U. Como trabalhos futuros, pretende-se investigar a \textit{co-execução
-híbrida} CPU+GPU --- particionando o trabalho entre os dispositivos --- e estender a avaliação a
-mais bases de larga escala, aproximando ainda mais o algoritmo de aplicações reais de mineração
-de dados.
+Como trabalhos futuros, destacam-se: confirmar a explicação da curva em U por \textit{profiling}
+(Nsight Compute); investigar a \textit{co-execução híbrida} CPU+GPU, particionando o trabalho
+entre os dispositivos; e estender a avaliação a mais bases de larga escala, aproximando o
+algoritmo de aplicações reais de mineração de dados.
 
 
 \bibliographystyle{sbc}
