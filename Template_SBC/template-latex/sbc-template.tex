@@ -3,10 +3,10 @@
 \usepackage{sbc-template}
 \usepackage{graphicx,url}
 \usepackage[utf8]{inputenc}
-\usepackage[brazil]{babel}
-\usepackage[latin1]{inputenc}  
+\usepackage{amsmath}
+\usepackage{babel}
+\babelprovide[import, main]{brazilian}
 
-     
 \sloppy
 
 \title{Paralelização do ACO com CUDA e OpenMP\\ para Seleção de Instâncias em Larga Escala}
@@ -20,134 +20,264 @@
   \email{\{raphael\_alves, wagnervictor, victor\_ribeiro, daniel.rios\}@discente.ufg.br}
 }
 
-\begin{document} 
+\begin{document}
 
 \maketitle
 
 \begin{abstract}
-  This meta-paper describes the style to be used in articles and short papers
-  for SBC conferences. For papers in English, you should add just an abstract
-  while for the papers in Portuguese, we also ask for an abstract in
-  Portuguese (``resumo''). In both cases, abstracts should not have more than
-  10 lines and must be in the first page of the paper.
+  Instance selection reduces dataset size while preserving classifier quality, but
+  Ant Colony Optimization (ACO), although effective, has an $O(N^2)$ cost that makes it
+  infeasible at large scale: the sequential C++ baseline of Magalhães et al. (2024) does
+  not scale to large bases. We parallelize ACO-based instance selection in OpenMP (CPU)
+  and CUDA (GPU), running the 1-NN evaluation entirely on the GPU, and assess the impact
+  of thread count, scheduler and block size. On nine datasets ($\leq$5k instances) a
+  24-core OpenMP run beats the GPU, but on a 253{,}680-instance base CUDA reaches
+  $\sim$69$\times$ over the sequential version (vs.\ $\sim$14$\times$ for OpenMP), keeping
+  the same quality ($\sim$23\% reduction, $F_1\approx0.77$). The GPU advantage is therefore
+  scale-dependent: it dominates once the problem is large enough to amortize its overhead.
 \end{abstract}
-     
-\begin{resumo} 
-  Este meta-artigo descreve o estilo a ser usado na confecção de artigos e
-  resumos de artigos para publicação nos anais das conferências organizadas
-  pela SBC. É solicitada a escrita de resumo e abstract apenas para os artigos
-  escritos em português. Artigos em inglês deverão apresentar apenas abstract.
-  Nos dois casos, o autor deve tomar cuidado para que o resumo (e o abstract)
-  não ultrapassem 10 linhas cada, sendo que ambos devem estar na primeira
-  página do artigo.
+
+\begin{resumo}
+  A seleção de instâncias reduz o tamanho de bases de dados preservando a qualidade de
+  classificadores, mas a Otimização por Colônia de Formigas (ACO), embora eficaz, tem custo
+  $O(N^2)$ que a inviabiliza em larga escala: o baseline sequencial em C++ de Magalhães et
+  al.\ (2024) não escala para grandes bases. Este trabalho paraleliza o ACO de seleção de
+  instâncias em OpenMP (CPU) e CUDA (GPU), com a avaliação 1-NN inteiramente na GPU, e mede o
+  impacto de threads, escalonadores e tamanho de bloco. Em nove bases ($\leq$5k instâncias) o
+  OpenMP em 24 núcleos supera a GPU, mas em uma base de 253.680 instâncias o CUDA atinge
+  $\sim$69$\times$ sobre o sequencial (contra $\sim$14$\times$ do OpenMP), preservando a
+  qualidade ($\sim$23\% de redução, $F_1\approx0{,}77$). Conclui-se que o ganho da GPU é
+  dependente de escala: ela domina quando o problema é grande o suficiente para amortizar seu
+  custo fixo.
 \end{resumo}
 
 
-\section{General Information}
+\section{Introdução}
 
-All full papers and posters (short papers) submitted to some SBC conference,
-including any supporting documents, should be written in English or in
-Portuguese. The format paper should be A4 with single column, 3.5 cm for upper
-margin, 2.5 cm for bottom margin and 3.0 cm for lateral margins, without
-headers or footers. The main font must be Times, 12 point nominal size, with 6
-points of space before each paragraph. Page numbers must be suppressed.
+Modelos de aprendizado de máquina dependem de conjuntos de treinamento representativos, e
+bases reais frequentemente contêm instâncias redundantes ou ruidosas que aumentam o custo
+computacional sem agregar informação. A \textit{seleção de instâncias} ataca esse problema:
+busca um subconjunto compacto dos dados que preserve (ou melhore) a acurácia de um
+classificador, reduzindo tempo e recursos de treinamento~\cite{olvera2010}.
 
-Full papers must respect the page limits defined by the conference.
-Conferences that publish just abstracts ask for \textbf{one}-page texts.
+A Otimização por Colônia de Formigas (ACO)~\cite{dorigo2006} é uma metaheurística
+bioinspirada eficaz para seleção de instâncias quando usada como método \textit{wrapper},
+guiando a escolha de instâncias por um classificador 1-NN~\cite{cover1967}. Sua principal
+limitação é o custo computacional: tanto o cálculo de distâncias quanto a avaliação 1-NN são
+$O(N^2)$ no número de instâncias $N$, o que torna o algoritmo caro à medida que a base cresce.
 
-\section{First Page} \label{sec:firstpage}
+O baseline deste trabalho, Magalhães et al.~\cite{magalhaes2024}, reescreveu o ACO de Python
+para C++ e obteve ganhos expressivos de desempenho mantendo a qualidade. Entretanto, essa
+versão permanece \textbf{sequencial}, e os próprios autores apontam que o alto custo
+computacional ``limita sua escalabilidade, tornando-o inviável para grandes bases de dados''.
+Existe, portanto, uma lacuna clara: falta uma versão \textbf{paralela} do ACO de seleção de
+instâncias capaz de explorar CPUs multicore e GPUs para viabilizar o algoritmo em larga escala.
 
-The first page must display the paper title, the name and address of the
-authors, the abstract in English and ``resumo'' in Portuguese (``resumos'' are
-required only for papers written in Portuguese). The title must be centered
-over the whole page, in 16 point boldface font and with 12 points of space
-before itself. Author names must be centered in 12 point font, bold, all of
-them disposed in the same line, separated by commas and with 12 points of
-space after the title. Addresses must be centered in 12 point font, also with
-12 points of space after the authors' names. E-mail addresses should be
-written using font Courier New, 10 point nominal size, with 6 points of space
-before and 6 points of space after.
-
-The abstract and ``resumo'' (if is the case) must be in 12 point Times font,
-indented 0.8cm on both sides. The word \textbf{Abstract} and \textbf{Resumo},
-should be written in boldface and must precede the text.
-
-\section{CD-ROMs and Printed Proceedings}
-
-In some conferences, the papers are published on CD-ROM while only the
-abstract is published in the printed Proceedings. In this case, authors are
-invited to prepare two final versions of the paper. One, complete, to be
-published on the CD and the other, containing only the first page, with
-abstract and ``resumo'' (for papers in Portuguese).
-
-\section{Sections and Paragraphs}
-
-Section titles must be in boldface, 13pt, flush left. There should be an extra
-12 pt of space before each title. Section numbering is optional. The first
-paragraph of each section should not be indented, while the first lines of
-subsequent paragraphs should be indented by 1.27 cm.
-
-\subsection{Subsections}
-
-The subsection titles must be in boldface, 12pt, flush left.
-
-\section{Figures and Captions}\label{sec:figs}
+Este trabalho preenche essa lacuna. Implementamos o ACO de seleção de instâncias em OpenMP
+(CPU)~\cite{dagum1998} e CUDA (GPU)~\cite{nickolls2008}, movendo a avaliação 1-NN inteiramente
+para a GPU, e avaliamos o impacto do número de threads, do escalonador de laço e do tamanho de
+bloco. Nas nove bases pequenas ($\leq$5k instâncias) o OpenMP em 24 núcleos supera a GPU, cujo
+custo fixo não se amortiza; já na base CDC Diabetes de 253.680 instâncias o CUDA atinge
+$\sim$69$\times$ de aceleração sobre o sequencial (contra $\sim$14$\times$ do OpenMP),
+preservando a qualidade da solução ($\sim$23\% de redução com $F_1\approx0{,}77$). O resultado
+central é que \textit{o ganho da GPU é dependente de escala}.
 
 
-Figure and table captions should be centered if less than one line
-(Figure~\ref{fig:exampleFig1}), otherwise justified and indented by 0.8cm on
-both margins, as shown in Figure~\ref{fig:exampleFig2}. The caption font must
-be Helvetica, 10 point, boldface, with 6 points of space before and after each
-caption.
+\section{Formulação do Problema}
+
+Seja um conjunto $X = \{x_1, \dots, x_N\}$ com $N$ instâncias e $F$ atributos. A seleção de
+instâncias procura um subconjunto $S \subseteq X$ que minimize $|S|$ mantendo a acurácia de um
+classificador treinado em $S$. No ACO, cada uma de $K$ formigas constrói uma solução binária
+(seleciona ou não cada instância) guiada por dois fatores: o \textit{feromônio} $\tau_i$, que
+acumula a utilidade histórica de incluir a instância $i$, e a \textit{visibilidade} $\eta_i$,
+derivada da distância média da instância às demais. A probabilidade de seleção é proporcional a
+$\tau_i^{\alpha}\,\eta_i^{\beta}$. A qualidade de cada solução é medida por um classificador
+1-NN aplicado sobre o subconjunto selecionado, e o feromônio é reforçado nas soluções de maior
+$F_1$ e evaporado a cada iteração.
+
+O custo computacional concentra-se em dois pontos $O(N^2 F)$: o pré-cálculo de distâncias e,
+sobretudo, a avaliação 1-NN, na qual cada instância de teste busca seu vizinho mais próximo no
+subconjunto selecionado. Para $N = 253{,}680$, isso significa da ordem de $10^{10}$ comparações
+por iteração --- o gargalo que motiva a paralelização.
+
+
+\section{Objetivos}
+
+\begin{enumerate}
+  \item Implementar o ACO de seleção de instâncias em três versões --- sequencial (baseline),
+        OpenMP (CPU) e CUDA (GPU) --- com qualidade equivalente.
+  \item Superar o baseline sequencial em desempenho, preservando a qualidade da seleção
+        (medida por $F_1$ e taxa de redução).
+  \item Avaliar a escalabilidade: em OpenMP, variando o número de threads e o escalonador de
+        laço; em CUDA, variando o tamanho de bloco.
+  \item Reportar o \textit{speedup} (absoluto e relativo) em bases de tamanhos distintos,
+        incluindo uma base de larga escala (253.680 instâncias).
+\end{enumerate}
+
+
+\section{Metodologia}
+
+\subsection{Algoritmo e implementações}
+
+As três versões compartilham o mesmo ACO de seleção guiada por feromônio
+($\alpha = \beta = 1$, taxa de evaporação $0{,}1$, $K = 64$ formigas). A construção de soluções
+é \textit{embaraçosamente paralela}: cada formiga escreve apenas em sua fatia da colônia e lê o
+vetor de probabilidades como dado somente-leitura, com gerador aleatório semeado por
+$(\textit{iteração}, k)$ para garantir determinismo independente do paralelismo.
+
+Na versão \textbf{OpenMP}, paralelizam-se a construção das formigas, o depósito de feromônio
+(com \texttt{atomic} para evitar condições de corrida) e, principalmente, a avaliação 1-NN ---
+o laço quente, que responde por mais de 98\% do tempo. Esse laço usa
+\texttt{schedule(runtime)}, permitindo controlar o escalonador via a variável
+\texttt{OMP\_SCHEDULE}. Na versão \textbf{CUDA}, a avaliação 1-NN roda inteiramente na GPU
+(\texttt{knn\_1nn\_kernel}: uma thread por instância de teste), eliminando o transporte da
+colônia $K\times N$ a cada iteração; para $N$ grande, o feromônio é mantido como vetor 1D e as
+distâncias são calculadas \textit{on-the-fly}, evitando a matriz $N\times N$.
+
+\subsection{Configuração experimental}
+
+Todos os experimentos rodaram na \textbf{mesma máquina}: Intel Core i9-14900K (24 núcleos
+físicos --- 8 \textit{performance} + 16 \textit{efficiency} --- e 32 threads) e GPU NVIDIA
+GeForce RTX 4090 (24~GB). Avaliamos nove bases do baseline (de 299 a 4.981 instâncias) e a base
+\textbf{CDC Diabetes Health Indicators}~\cite{cdcdataset} (253.680 instâncias, 21 atributos).
+Para a comparação dos nove datasets, fixamos 100 iterações em todos os modos, garantindo
+comparação justa de tempo. No experimento de larga escala (CDC) habilitamos \textit{early
+stopping} (parada após 20 iterações sem melhora). As métricas são $F_1$, taxa de redução, tempo
+de execução, vazão (GFLOPS) e \textit{speedup}. Para o CDC, o \textit{speedup} é normalizado por
+iteração, usando como referência ($T_1$) uma execução de 1 thread da mesma campanha. O código e
+os dados estão disponíveis publicamente~\cite{repo2026}.
+
+
+\section{Resultados}
+
+\subsection{Escala pequena/média: a CPU multicore supera a GPU}
+
+A Figura~\ref{fig:speedup} e a Tabela~\ref{tab:baseline} mostram o desempenho nas nove bases.
+A qualidade é preservada por todas as implementações (variações de $F_1$ entre seq, OpenMP e
+CUDA ficam dentro de $\sim$2\%, ruído estatístico do algoritmo estocástico), com redução de 6\%
+a 22\% das instâncias. Quanto ao tempo, o \textit{speedup} da CUDA cresce com $N$ (de
+$0{,}7\times$ na menor base a $8{,}2\times$ na maior), mas em \textbf{todas} as nove bases o
+OpenMP em 24 núcleos é mais rápido que a GPU: o custo fixo de lançamento de kernels e de
+transferência host--device não se amortiza enquanto o problema é pequeno. Em bases de poucos
+milhares de instâncias, portanto, a CPU multicore é a melhor escolha.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=.5\textwidth]{fig1.jpg}
-\caption{A typical figure}
-\label{fig:exampleFig1}
+\includegraphics[width=.78\textwidth]{figs/baseline_speedup_vs_n.png}
+\caption{O ganho da GPU cresce com o tamanho da base, mas até $\sim$5k instâncias o OpenMP em
+  24 núcleos supera a CUDA: o custo fixo da GPU só se amortiza em escala maior.}
+\label{fig:speedup}
 \end{figure}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=.3\textwidth]{fig2.jpg}
-\caption{This figure is an example of a figure caption taking more than one
-  line and justified considering margins mentioned in Section~\ref{sec:figs}.}
-\label{fig:exampleFig2}
-\end{figure}
-
-In tables, try to avoid the use of colored or shaded backgrounds, and avoid
-thick, doubled, or unnecessary framing lines. When reporting empirical data,
-do not use more decimal digits than warranted by their precision and
-reproducibility. Table caption must be placed before the table (see Table 1)
-and the font used must also be Helvetica, 10 point, boldface, with 6 points of
-space before and after each caption.
 
 \begin{table}[ht]
 \centering
-\caption{Variables to be considered on the evaluation of interaction
-  techniques}
-\label{tab:exTable1}
-\includegraphics[width=.7\textwidth]{table.jpg}
+\caption{Qualidade e \textit{speedup} nas nove bases (100 iterações, sequencial como
+  referência). $F_1$ do sequencial; melhor configuração OpenMP entre threads e escalonadores.}
+\label{tab:baseline}
+\begin{tabular}{lrrrrr}
+\hline
+\textbf{Dataset} & \textbf{N} & \textbf{$F_1$} & \textbf{Red.\ (\%)} & \textbf{CUDA} & \textbf{OpenMP (melhor)} \\
+\hline
+heart\_failure & 299  & 0,887 & 19,4 & 0,7$\times$ & 2,9$\times$ \\
+haberman       & 306  & 0,881 & 19,9 & 1,8$\times$ & 3,6$\times$ \\
+cirrhosis      & 418  & 0,867 & 21,5 & 0,9$\times$ & 4,0$\times$ \\
+diabetes       & 768  & 0,906 & 19,5 & 1,5$\times$ & 4,5$\times$ \\
+tic-tac-toe    & 958  & 0,979 & 6,7  & 1,8$\times$ & 5,8$\times$ \\
+yeast          & 1484 & 0,979 & 6,3  & 2,4$\times$ & 6,5$\times$ \\
+vaccine        & 3152 & 0,958 & 12,7 & 5,9$\times$ & 13,0$\times$ \\
+Employee       & 4653 & 0,809 & 22,2 & 7,4$\times$ & 10,4$\times$ \\
+brain-stroke   & 4981 & 0,727 & 22,4 & 8,2$\times$ & 11,5$\times$ \\
+\hline
+\end{tabular}
 \end{table}
 
-\section{Images}
+\subsection{Escalonadores OpenMP: \textit{dynamic} vence \textit{static}}
 
-All images and illustrations should be in black-and-white, or gray tones,
-excepting for the papers that will be electronically available (on CD-ROMs,
-internet, etc.). The image resolution on paper should be about 600 dpi for
-black-and-white images, and 150-300 dpi for grayscale images.  Do not include
-images with excessive resolution, as they may take hours to print, without any
-visible difference in the result. 
+A avaliação 1-NN é uma carga \textit{irregular} (instâncias com vizinhos próximos terminam mais
+cedo), o que favorece escalonadores que rebalanceiam a carga. A Figura~\ref{fig:sched} compara,
+com 16 threads, os escalonadores \texttt{static} (partição em blocos) e \texttt{dynamic}
+(distribuição sob demanda) e seus tamanhos de \textit{chunk}. Nas bases maiores, o
+\texttt{dynamic} é em média $\sim$25--30\% mais rápido que o \texttt{static}, enquanto o
+tamanho de \textit{chunk} (1, 2 ou 3) tem efeito secundário. O balanceamento dinâmico compensa
+porque cada iteração do laço quente é pesada o suficiente para diluir o custo da fila
+compartilhada.
 
-\section{References}
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.70\textwidth]{figs/baseline_sched.png}
+\caption{Tempo relativo ao \texttt{static} (16 threads, média geométrica das bases $\geq$1000
+  instâncias): o \texttt{dynamic} reduz o tempo em $\sim$25--30\%; o tamanho de \textit{chunk} é
+  secundário.}
+\label{fig:sched}
+\end{figure}
 
-Bibliographic references must be unambiguous and uniform.  We recommend giving
-the author names references in brackets, e.g. \cite{knuth:84},
-\cite{boulic:91}, and \cite{smith:99}.
+\subsection{Larga escala (253.680 instâncias): a GPU domina}
 
-The references must be listed using 12 point font size, with 6 points of space
-before each reference. The first line of each reference should not be
-indented, while the subsequent should be indented by 0.5 cm.
+Na base CDC, o quadro se inverte. A Tabela~\ref{tab:cdc} resume o desempenho. O OpenMP escala
+bem com o número de threads, chegando a $\sim$14$\times$ (\texttt{static}) e $\sim$16$\times$
+(\texttt{dynamic}) sobre 1 thread ao usar as 32 threads do i9-14900K, confirmando que o
+\texttt{dynamic} mantém vantagem em escala. A CUDA, por sua vez, atinge \textbf{38--69$\times$}
+sobre o sequencial, executando a campanha completa em cerca de 2~minutos. A melhor configuração
+CUDA é $\sim$4,3$\times$ mais rápida que a melhor configuração OpenMP (32 threads).
+
+\begin{table}[ht]
+\centering
+\caption{Desempenho na base CDC (253.680 instâncias; \textit{early stopping} em 22 iterações;
+  \textit{speedup} normalizado por iteração vs.\ 1 thread). Qualidade idêntica entre os modos.}
+\label{tab:cdc}
+\begin{tabular}{llrr}
+\hline
+\textbf{Modo} & \textbf{Configuração} & \textbf{Tempo} & \textbf{Speedup} \\
+\hline
+OpenMP & 2 threads (static)   & 109,2 min & 1,3$\times$ \\
+OpenMP & 32 threads (static)  & 9,7 min   & 14,0$\times$ \\
+OpenMP & 32 threads (dynamic) & 8,6 min   & 15,9$\times$ \\
+CUDA   & block size 64        & 151 s     & 54,0$\times$ \\
+CUDA   & block size 1024      & 118 s     & \textbf{69,1$\times$} \\
+\hline
+\end{tabular}
+\end{table}
+
+A varredura de tamanho de bloco da CUDA (Figura~\ref{fig:cuda}) revela uma curva em \textbf{U}:
+os extremos (bloco 32 e 1024) são mais rápidos e o meio (64--128) mais lento, com diferença de
+$\sim$28\% entre o melhor e o pior. A explicação está no padrão de acesso do
+\texttt{knn\_1nn\_kernel}: todas as threads leem a mesma linha de referência simultaneamente, em
+\textit{broadcast}. Blocos grandes maximizam o reúso desse \textit{broadcast}; blocos pequenos
+dão folga ao escalonador para manter os SMs cheios; o meio perde nos dois efeitos. O padrão é
+reprodutível (variação $<$0,2\% entre execuções repetidas), confirmando que não é ruído.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.78\textwidth]{figs/cdc_cuda_blocksize.png}
+\caption{CUDA na base CDC: a curva de tempo e vazão por tamanho de bloco tem forma de U --- os
+  extremos vencem por equilibrarem reúso de \textit{broadcast} e ocupância dos SMs.}
+\label{fig:cuda}
+\end{figure}
+
+Em todos os modos a solução converge para a mesma qualidade: $\sim$23\% de redução de
+instâncias mantendo $F_1\approx0{,}77$ --- a paralelização altera o tempo, não o resultado. O
+\textit{early stopping} reduziu cada execução para 22 iterações, economizando $\sim$78\% do
+tempo sem perda de qualidade.
+
+
+\section{Conclusão}
+
+Este trabalho paralelizou o ACO de seleção de instâncias em OpenMP e CUDA, preenchendo a lacuna
+de escalabilidade deixada pelo baseline sequencial de Magalhães et al.~\cite{magalhaes2024} e
+viabilizando o algoritmo em uma base de 253.680 instâncias. O resultado central é que
+\textbf{o ganho da GPU é dependente de escala}: em bases de até $\sim$5k instâncias, o custo
+fixo da GPU não se amortiza e o OpenMP em 24 núcleos é mais rápido; em larga escala, a CUDA
+domina, atingindo $\sim$69$\times$ sobre o sequencial e sendo $\sim$4,3$\times$ mais rápida que
+a melhor configuração de CPU. Em todos os casos, a qualidade da seleção é preservada
+($\sim$23\% de redução, $F_1\approx0{,}77$).
+
+As principais limitações são o uso de uma única base de larga escala e a ausência de
+\textit{profiling} de hardware (ocupância, vazão de memória) para confirmar quantitativamente a
+explicação da curva em U. Como trabalhos futuros, pretende-se investigar a \textit{co-execução
+híbrida} CPU+GPU --- particionando o trabalho entre os dispositivos --- e estender a avaliação a
+mais bases de larga escala, aproximando ainda mais o algoritmo de aplicações reais de mineração
+de dados.
+
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}

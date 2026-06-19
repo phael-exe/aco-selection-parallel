@@ -35,3 +35,12 @@ Thumbs.db
 
 # Artefatos locais
 caminho_ACO.txt
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.toc
+*.synctex.gz
+Template_SBC/template-latex/*.log
+Template_SBC/template-latex/*.out

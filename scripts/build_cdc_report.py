@@ -170,9 +170,9 @@ def build_report(csv_path, t1_log, out_path, final=False):
                 else:
                     cells.append("—")
             L.append(f"| {t}t | " + " | ".join(cells) + " |")
-        L.append("\n- ~**1.8–2.0× por dobra de threads** — escala quase linear até os 12 cores "
-                 "físicos, com ganho extra em 32t (oversubscrição ajuda a esconder latência no "
-                 "eval *memory-bound*).")
+        L.append("\n- ~**1.8–2.0× por dobra de threads**, escalando bem até 32 threads — coerente "
+                 "com os **24 núcleos físicos** (8 P-cores + 16 E-cores) do i9-14900K; em 32 threads "
+                 "usa os P-cores com hyperthreading além de todos os E-cores. Carga *memory-bound*.")
         L.append("- **dynamic** supera **static** nos thread counts altos (melhor balanceamento de "
                  "carga no trabalho irregular do 1-NN).")
 

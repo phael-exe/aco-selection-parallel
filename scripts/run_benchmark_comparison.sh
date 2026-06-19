@@ -20,7 +20,8 @@ OUT_CSV="results/EP04_CUDA_benchmark_raw.csv"
 
 ANTS=64
 ITER=100
-OMP_THREAD_COUNTS=(1 2 4 8 12)   # igual ao EP03 (12 = max núcleos lógicos)
+PATIENCE="${PATIENCE:-10}"        # early stop consistente entre seq/omp/cuda (seq usa 10 fixo)
+OMP_THREAD_COUNTS=(1 2 4 8 16 32) # máquina do SSH = i9-14900K (24 cores / 32 threads)
 
 DATASETS=(
     "data/baseline/heart_failure.csv:DEATH_EVENT"
@@ -32,7 +33,6 @@ DATASETS=(
     "data/baseline/vaccine.csv:Vaccine_Hesitant"
     "data/baseline/Employee.csv:LeaveOr1t"
     "data/baseline/brain-stroke.csv:stroke"
-    "data/cdc/cdc_diabetes.csv:Diabetes_binary"
 )
 
 echo "======================================================="
@@ -75,13 +75,13 @@ run_one() {
 
     if [ "$MODE" = "omp" ]; then
         RAW=$(OMP_NUM_THREADS="$THREADS" "$BIN" "$DATASET" "$TARGET" \
-              --ants "$ANTS" --iter "$ITER" 2>/dev/null) || { STATUS="FAIL"; }
+              --ants "$ANTS" --iter "$ITER" --patience "$PATIENCE" 2>/dev/null) || { STATUS="FAIL"; }
     elif [ "$MODE" = "seq" ]; then
         RAW=$("$BIN" "$DATASET" "$TARGET" \
               --ants "$ANTS" --iter "$ITER" --eval-sample 0 2>/dev/null) || { STATUS="FAIL"; }
     else
         RAW=$("$BIN" "$DATASET" "$TARGET" \
-              --ants "$ANTS" --iter "$ITER" 2>/dev/null) || { STATUS="FAIL"; }
+              --ants "$ANTS" --iter "$ITER" --patience "$PATIENCE" 2>/dev/null) || { STATUS="FAIL"; }
     fi
 
     if [ -z "${STATUS:-}" ]; then
